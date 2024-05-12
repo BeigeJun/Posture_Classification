@@ -1,4 +1,3 @@
-import numpy as np
 from PIL import Image
 import torch
 from torchvision import models
@@ -6,29 +5,10 @@ import torchvision.transforms as t
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
-import cv2
+import os
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = models.detection.keypointrcnn_resnet50_fpn(pretrained=True).to(device).eval()
-
-cap = cv2.VideoCapture(0)
-
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-    cv2.imshow('Pose Detection', frame)
-    if cv2.waitKey(1) & 0xFF == ord('c'):
-        frame = cv2.flip(frame, 1)
-        cv2.imwrite('front.jpg', frame)
-        break
-cap.release()
-cv2.destroyAllWindows()
-
-IMAGE_SIZE = 800
-img_front = Image.open('front.jpg')
-img_front = img_front.resize((IMAGE_SIZE, int(img_front.height * IMAGE_SIZE / img_front.width)))
-image_width, image_height = img_front.size
 
 trf = t.Compose([
     t.ToTensor()
@@ -48,6 +28,7 @@ def make_sceleton(img):
     ax.imshow(img)
     key = torch.zeros((17, 3))
     threshold = 0.9
+    label_ = ''
     for box, score, points in zip(out['boxes'], out['scores'], out['keypoints']):
         score = score.detach().cpu().numpy()
         if score < threshold:
@@ -79,8 +60,34 @@ def make_sceleton(img):
             ax.add_patch(circle)
 
         key = points
+        label = int(input("Label : "))
+        if label == 0:
+            label_ = "STAND"
+        else:
+            label_ = "SIT"
     plt.show()
-    return key
+    return key, label_
 
 
-Sceleton_1 = make_sceleton(img_front)
+directory = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/DATASET' + '/Sit'
+file_list = os.listdir(directory)
+print("DATA 갯수:", len(file_list))
+
+for cnt in range(len(file_list)-1):
+    IMAGE_SIZE = 800
+    file_name = f'{directory}/img{cnt}.jpg'
+    img_Data = Image.open(file_name)
+    img_Data = img_Data.resize((IMAGE_SIZE, int(img_Data.height * IMAGE_SIZE / img_Data.width)))
+
+    Sceleton_1, label = make_sceleton(img_Data)
+
+    file_name = f'{directory}/Pos.txt'
+    with open(file_name, 'r') as f:
+        Lines = f.read()
+
+    with open(file_name, 'w') as f:
+        for i in range(len(Sceleton_1)):
+            for j in range(2):
+                Lines += str(Sceleton_1[i][j]) + ' '
+        Lines += '\n'
+        f.write(Lines)
