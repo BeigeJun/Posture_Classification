@@ -9,6 +9,42 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.path import Path
 
+
+video_path = 'output.avi'
+
+if not os.path.isfile(video_path):
+    print(f'Error: {video_path} not found')
+    exit()
+
+cap = cv2.VideoCapture(video_path)
+
+save_directory = 'captured_images'
+if not os.path.exists(save_directory):
+    os.makedirs(save_directory)
+
+count = 0
+
+while cap.isOpened():
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    cv2.imshow('Video', frame)
+
+    key = cv2.waitKey(1)
+    if key == ord('c'):
+        file_name = os.path.join(save_directory, f'image_{count}.jpg')
+        cv2.imwrite(file_name, frame)
+        print(f'Captured image {file_name}')
+        count += 1
+    elif key == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+
+
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = models.detection.keypointrcnn_resnet50_fpn(pretrained=True).to(device).eval()
 
@@ -77,17 +113,14 @@ def make_skeleton(img):
     return key, label_
 
 
-# CSV 파일을 저장할 경로 및 파일명
 csv_file = 'captured_images/pos_data.csv'
 
-# CSV 파일에 헤더를 작성할 때 사용할 필드 이름 생성
 fieldnames = []
 for i in range(17):
     fieldnames.append(f'keypoint_{i + 1}_x')
     fieldnames.append(f'keypoint_{i + 1}_y')
 fieldnames.append('label')
 
-# CSV 파일을 열고 writer 객체를 생성하여 데이터를 작성
 with open(csv_file, mode='w', newline='') as file:
     writer = csv.DictWriter(file, fieldnames=fieldnames)
     writer.writeheader()
@@ -104,7 +137,6 @@ with open(csv_file, mode='w', newline='') as file:
 
         Sceleton_1, label = make_skeleton(img_Data)
 
-        # CSV 파일에 한 줄씩 데이터를 작성
         row = {}
         for i in range(len(Sceleton_1)):
             row[f'keypoint_{i + 1}_x'] = Sceleton_1[i][0]
