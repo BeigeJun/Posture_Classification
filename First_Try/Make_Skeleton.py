@@ -8,9 +8,30 @@ import torchvision.transforms as t
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.path import Path
+import cv2
 
+cap = cv2.VideoCapture(0)
+video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/output.avi'
 
-video_path = 'output.avi'
+# fourcc = cv2.VideoWriter_fourcc(*'XVID')
+# out = cv2.VideoWriter(video_path, fourcc, 20.0, (640, 480))
+#
+# while cap.isOpened():
+#     ret, frame = cap.read()
+#     if not ret:
+#         break
+#
+#     cv2.imshow('Video', frame)
+#
+#     out.write(frame)
+#
+#     if cv2.waitKey(1) & 0xFF == ord('q'):
+#         break
+#
+# cap.release()
+# out.release()
+# cv2.destroyAllWindows()
+
 
 if not os.path.isfile(video_path):
     print(f'Error: {video_path} not found')
@@ -18,7 +39,7 @@ if not os.path.isfile(video_path):
 
 cap = cv2.VideoCapture(video_path)
 
-save_directory = 'captured_images'
+save_directory = '/Users/wns20/PycharmProjects/SMART_CCTV/captured_images'
 if not os.path.exists(save_directory):
     os.makedirs(save_directory)
 
@@ -99,21 +120,15 @@ def make_skeleton(img):
 
         key = points
     plt.show()
-    label = int(input("Label(0 : Sit, 1 : Fall_Down, 2 : Lay_Down, 3: Stumble, 4 : Stand) : "))
+    label = int(input("Label(0 : Sit, 9 : Stand) : "))
     if label == 0:
         label_ = "Sit"
-    elif label == 1:
-        label_ = "Fall_Down"
-    elif label == 2:
-        label_ = "Lay_Down"
-    elif label == 3:
-        label_ = "Stumble"
-    elif label == 4:
+    elif label == 9:
         label_ = "Stand"
     return key, label_
 
 
-csv_file = 'captured_images/pos_data.csv'
+csv_file = '/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/pos_data.csv'
 
 fieldnames = []
 for i in range(17):
@@ -125,7 +140,7 @@ with open(csv_file, mode='w', newline='') as file:
     writer = csv.DictWriter(file, fieldnames=fieldnames)
     writer.writeheader()
 
-    directory = 'captured_images'
+    directory = '/Users/wns20/PycharmProjects/SMART_CCTV/captured_images'
     file_list = os.listdir(directory)
     print("DATA 갯수:", len(file_list))
 
