@@ -1,13 +1,4 @@
 import csv
-import cv2
-import os
-from PIL import Image
-import torch
-from torchvision import models
-import torchvision.transforms as t
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from matplotlib.path import Path
 import numpy as np
 
 csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/pos_data.csv'
@@ -44,30 +35,50 @@ def make_center_pos(key, num):
     return center_pos
 
 def remake_pos(keypoints, center_pos):
+    Max = 0
+    Min = 10000000000000
     new_keypoints = []
     for row in keypoints:
         row_keypoints = []
         for pos in row:
-            new_pos = [pos[0] - center_pos[0], pos[1] - center_pos[1]]
+            new_pos = [pos[0] - center_pos[0] + 1000, pos[1] - center_pos[1] + 1000]
             row_keypoints.append(new_pos)
+            if new_pos[0] < Min:
+                Min = new_pos[0]
+            if new_pos[1] < Min:
+                Min = new_pos[1]
+            if new_pos[0] > Max:
+                Max = new_pos[0]
+            if new_pos[1] > Max:
+                Max = new_pos[1]
         new_keypoints.append(row_keypoints)
+    for row in new_keypoints:
+        for pos in row:
+            pos[0] = (pos[0] - Min) / (Max - Min)
+            pos[1] = (pos[1] - Min) / (Max - Min)
+    with open('Max_Min.txt', 'w') as file:
+        file.write(f"{Max}\n")
+        file.write(f"{Min}\n")
     return new_keypoints
-
 
 points, labels, lines = read_lines(csv_file)
 
 fieldnames = []
-for i in range(17):
-    fieldnames.append(f'keypoint_{i + 1}_x')
-    fieldnames.append(f'keypoint_{i + 1}_y')
+fieldnames.append(f'keypoint_5_x')
+fieldnames.append(f'keypoint_5_y')
+fieldnames.append(f'keypoint_6_x')
+fieldnames.append(f'keypoint_6_y')
+for i in range(11, 17):
+    fieldnames.append(f'keypoint_{i}_x')
+    fieldnames.append(f'keypoint_{i}_y')
 fieldnames.append('label')
-
+print(fieldnames)
 for i in range(len(points)):
     center = make_center_pos(points, i)
     changed_pos = remake_pos(points, center)
     original_keypoints = np.array(points)
     changed_keypoints = np.array(changed_pos)
-
+    print(changed_keypoints)
     # plt.figure(figsize=(10, 5))
     # plt.subplot(1, 2, 1)
     # plt.scatter(original_keypoints[i, :, 0], original_keypoints[i, :, 1], color='blue')
@@ -85,16 +96,23 @@ for i in range(len(points)):
     #
     # plt.tight_layout()
     # plt.show()
-print(lines)
-print(changed_keypoints)
-print(changed_keypoints.shape)
+# print(lines)
+# print(original_keypoints)
+# print(original_keypoints.shape)
+
+
+
 with open(remake_csv_file, mode='w', newline='') as file:
     writer = csv.DictWriter(file, fieldnames=fieldnames)
     writer.writeheader()
-
+    print(changed_keypoints.shape)
     for cnt in range(lines):
         row = {}
-        for i in range(1, 17):
+        row[f'keypoint_5_x'] = changed_keypoints[cnt][5][0]
+        row[f'keypoint_5_y'] = changed_keypoints[cnt][5][1]
+        row[f'keypoint_6_x'] = changed_keypoints[cnt][6][0]
+        row[f'keypoint_6_y'] = changed_keypoints[cnt][6][1]
+        for i in range(11, 17):
             row[f'keypoint_{i}_x'] = changed_keypoints[cnt][i][0]
             row[f'keypoint_{i}_y'] = changed_keypoints[cnt][i][1]
         row['label'] = labels[cnt]

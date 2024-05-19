@@ -47,17 +47,17 @@ class MLP(nn.Module):
         return x
 
 
-input_size = 34
+input_size = 16
 hidden_size1 = 64
 hidden_size2 = 128
 hidden_size3 = 64
-output_size = 3
-batch_size = 1
-learning_rate = 0.005
+output_size = 2
+batch_size = 16
+learning_rate = 0.01
 num_epochs = 10000
 
 
-dataset = CustomDataset('C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/pos_data.csv')
+dataset = CustomDataset('C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/pos_data_remake.csv')
 
 train_indices, test_indices = train_test_split(range(len(dataset)), test_size=0.33, random_state=42, shuffle=True)
 train_dataset = Subset(dataset, train_indices)
@@ -81,7 +81,7 @@ for epoch in range(num_epochs):
         optimizer.step()
 
         if (epoch + 1) % 10 == 0 and (i + 1) % len(train_loader) == 0:
-            print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.20f}')
+            print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.30f}')
 
 print('Training Finished')
 
