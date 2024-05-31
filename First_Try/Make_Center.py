@@ -1,8 +1,18 @@
 import csv
 import numpy as np
-
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from matplotlib.path import Path
+import os
+output_folder = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/output_images'
 csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/pos_data.csv'
 remake_csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/pos_data_remake.csv'
+
+codes = [
+    Path.MOVETO,
+    Path.LINETO,
+    Path.LINETO
+]
 
 def read_lines(path):
     keypoints = []
@@ -21,7 +31,6 @@ def read_lines(path):
             labels.append(label)
             count += 1
     return keypoints, labels, count
-
 
 def make_center_pos(key, num):
     np_key = np.array(key)
@@ -73,33 +82,59 @@ for i in range(11, 17):
     fieldnames.append(f'keypoint_{i}_y')
 fieldnames.append('label')
 print(fieldnames)
+
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+
 for i in range(len(points)):
     center = make_center_pos(points, i)
     changed_pos = remake_pos(points, center)
     original_keypoints = np.array(points)
     changed_keypoints = np.array(changed_pos)
     print(changed_keypoints)
-    # plt.figure(figsize=(10, 5))
-    # plt.subplot(1, 2, 1)
-    # plt.scatter(original_keypoints[i, :, 0], original_keypoints[i, :, 1], color='blue')
-    # plt.title('Original Keypoints')
-    # plt.xlabel('X')
-    # plt.ylabel('Y')
-    # plt.grid(True)
-    #
-    # plt.subplot(1, 2, 2)
-    # plt.scatter(changed_keypoints[i, :, 0], changed_keypoints[i, :, 1], color='red')
-    # plt.title('Changed Keypoints')
-    # plt.xlabel('X')
-    # plt.ylabel('Y')
-    # plt.grid(True)
-    #
-    # plt.tight_layout()
-    # plt.show()
-# print(lines)
-# print(original_keypoints)
-# print(original_keypoints.shape)
+    plt.figure(figsize=(3, 5))
 
+    plt.scatter(changed_keypoints[i, 5:17, 0], changed_keypoints[i, 5:17, 1], color='red')
+    head_x = (changed_keypoints[i, 3, 0] + changed_keypoints[i, 4, 0]) / 2
+    head_y = (changed_keypoints[i, 3, 1] + changed_keypoints[i, 4, 1]) / 2
+    plt.scatter(head_x, head_y, color='red', s=500)
+
+    ax = plt.gca()
+    ax.axis('off')
+    ax.invert_xaxis()
+    ax.invert_yaxis()
+
+    shoulder_verts = changed_keypoints[i, [5, 6], :2]
+    shoulder_path = Path(shoulder_verts, [Path.MOVETO, Path.LINETO])
+    shoulder_line = patches.PathPatch(shoulder_path, linewidth=2, facecolor='none', edgecolor='red')
+    ax.add_patch(shoulder_line)
+
+    for j in range(2):
+        body_verts = changed_keypoints[i, [5 + j, 11 + j], :2]
+        body_path = Path(body_verts, [Path.MOVETO, Path.LINETO])
+        body_line = patches.PathPatch(body_path, linewidth=2, facecolor='none', edgecolor='red')
+        ax.add_patch(body_line)
+
+    pelvis_verts = changed_keypoints[i, [11, 12], :2]
+    pelvis_path = Path(pelvis_verts, [Path.MOVETO, Path.LINETO])
+    pelvis_line = patches.PathPatch(pelvis_path, linewidth=2, facecolor='none', edgecolor='red')
+    ax.add_patch(pelvis_line)
+
+    for j in range(2):
+        verts = changed_keypoints[i, [5 + j, 7 + j, 9 + j], :2]
+        path = Path(verts, codes)
+        line = patches.PathPatch(path, linewidth=2, facecolor='none', edgecolor='red')
+        ax.add_patch(line)
+
+    for j in range(2):
+        verts = changed_keypoints[i, [11 + j, 13 + j, 15 + j], :2]
+        path = Path(verts, codes)
+        line = patches.PathPatch(path, linewidth=2, facecolor='none', edgecolor='red')
+        ax.add_patch(line)
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_folder, f'image_{i}.png'))
+    plt.close()
 
 
 with open(remake_csv_file, mode='w', newline='') as file:
