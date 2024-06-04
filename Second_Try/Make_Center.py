@@ -149,7 +149,7 @@ for i in range(len(points)):
 with open(remake_csv_file, mode='w', newline='') as file:
     writer = csv.DictWriter(file, fieldnames=fieldnames)
     writer.writeheader()
-    print(changed_keypoints.shape)
+
     for cnt in range(lines):
         row = {}
         row[f'keypoint_5_x'] = changed_keypoints[cnt][5][0]
