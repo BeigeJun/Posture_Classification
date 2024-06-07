@@ -29,37 +29,33 @@ codes = [
     Path.LINETO,
     Path.LINETO
 ]
-input_size = 1
-hidden_size1 = 9
-hidden_size2 = 18
-hidden_size3 = 27
-hidden_to_lin = 36
-lin_to_lin = 100
-output_size = 2
+
 
 class CNN(nn.Module):
-    def __init__(self, input_size, hidden_size1, hidden_size2, hidden_size3, hidden_to_lin, lin_to_lin, output_size):
+    def __init__(self, input_channels, hidden_channels, hidden_to_lin, lin_to_lin, output_size):
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=input_size, out_channels=hidden_size1, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(in_channels=hidden_size1, out_channels=hidden_size2, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(in_channels=hidden_size2, out_channels=hidden_size3, kernel_size=3, stride=1, padding=1)
-        self.conv4 = nn.Conv2d(in_channels=hidden_size3, out_channels=hidden_to_lin, kernel_size=3, stride=1, padding=1)
-        self.fc1 = nn.Linear(hidden_to_lin, lin_to_lin)
+        self.conv1 = nn.Conv2d(in_channels=input_channels, out_channels=hidden_channels, kernel_size=7, stride=1, padding=3)
+        self.pool = nn.MaxPool2d(kernel_size=8, stride=8)
+        self._to_linear = None
+        self.convs(torch.randn(1, input_channels, 200, 200))
+        self.fc1 = nn.Linear(self._to_linear, lin_to_lin)
         self.fc2 = nn.Linear(lin_to_lin, output_size)
 
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, kernel_size=2, stride=2)
-        x = F.relu(self.conv2(x))
-        x = F.max_pool2d(x, kernel_size=2, stride=2)
-        x = F.relu(self.conv3(x))
-        x = F.max_pool2d(x, kernel_size=2, stride=2)
-        x = F.relu(self.conv4(x))
-        x = F.max_pool2d(x, kernel_size=2, stride=2)
-        x = F.relu(self.fc1(x.view(-1, 36)))
-        x = self.fc2(x)
-        x = F.softmax(x, dim=1)
+    def convs(self, x):
+        x = self.pool(F.relu(self.conv1(x)))
+        if self._to_linear is None:
+            self._to_linear = x.view(x.size(0), -1).size(1)
         return x
+
+    def forward(self, x):
+        x = self.convs(x)
+        x = x.view(x.size(0), -1)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return F.log_softmax(x, dim=1)
+
+
+
 
 
 def make_skeleton(img):
@@ -122,18 +118,18 @@ def make_img(keypoints):
 
     shoulder_verts = changed_keypoints[[5, 6], :2]
     shoulder_path = Path(shoulder_verts, [Path.MOVETO, Path.LINETO])
-    shoulder_line = patches.PathPatch(shoulder_path, linewidth=2, facecolor='none', edgecolor='red')
+    shoulder_line = patches.PathPatch(shoulder_path, linewidth=8, facecolor='none', edgecolor='red')
     ax.add_patch(shoulder_line)
 
     for j in range(2):
         body_verts = changed_keypoints[[5 + j, 11 + j], :2]
         body_path = Path(body_verts, [Path.MOVETO, Path.LINETO])
-        body_line = patches.PathPatch(body_path, linewidth=2, facecolor='none', edgecolor='red')
+        body_line = patches.PathPatch(body_path, linewidth=8, facecolor='none', edgecolor='red')
         ax.add_patch(body_line)
 
     pelvis_verts = changed_keypoints[[11, 12], :2]
     pelvis_path = Path(pelvis_verts, [Path.MOVETO, Path.LINETO])
-    pelvis_line = patches.PathPatch(pelvis_path, linewidth=2, facecolor='none', edgecolor='red')
+    pelvis_line = patches.PathPatch(pelvis_path, linewidth=8, facecolor='none', edgecolor='red')
     ax.add_patch(pelvis_line)
 
     for j in range(2):
@@ -145,7 +141,7 @@ def make_img(keypoints):
     for j in range(2):
         verts = changed_keypoints[[11 + j, 13 + j, 15 + j], :2]
         path = Path(verts, codes)
-        line = patches.PathPatch(path, linewidth=2, facecolor='none', edgecolor='red')
+        line = patches.PathPatch(path, linewidth=8, facecolor='none', edgecolor='red')
         ax.add_patch(line)
 
     plt.tight_layout()
@@ -153,8 +149,18 @@ def make_img(keypoints):
     plt.close()
 
 model_path = 'model.pth'
-model = CNN(input_size, hidden_size1, hidden_size2, hidden_size3, hidden_to_lin, lin_to_lin, output_size).to(device)
-model.load_state_dict(torch.load(model_path))
+# 하이퍼파라미터 설정
+input_channels = 1
+hidden_channels = 16
+hidden_to_lin = 256
+lin_to_lin = 512
+output_size = 2
+batch_size = 12
+learning_rate = 0.01
+num_epochs = 100
+
+# 모델, 손실 함수 및 옵티마이저 설정
+model = CNN(input_channels, hidden_channels, hidden_to_lin, lin_to_lin, output_size).to(device)
 model.eval()
 
 cap = cv2.VideoCapture(0)
