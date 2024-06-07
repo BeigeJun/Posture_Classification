@@ -20,10 +20,11 @@ trf = t.Compose([
 ])
 transform = transforms.Compose([
     transforms.Grayscale(),
-    transforms.Resize((28, 28)),
+    transforms.Resize((200, 200)),
     transforms.ToTensor(),
     transforms.Normalize((0.5,), (0.5,))
 ])
+
 codes = [
     Path.MOVETO,
     Path.LINETO,
@@ -32,28 +33,20 @@ codes = [
 
 
 class CNN(nn.Module):
-    def __init__(self, input_channels, hidden_channels, hidden_to_lin, lin_to_lin, output_size):
+    def __init__(self):
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=input_channels, out_channels=hidden_channels, kernel_size=7, stride=1, padding=3)
-        self.pool = nn.MaxPool2d(kernel_size=8, stride=8)
-        self._to_linear = None
-        self.convs(torch.randn(1, input_channels, 200, 200))
-        self.fc1 = nn.Linear(self._to_linear, lin_to_lin)
-        self.fc2 = nn.Linear(lin_to_lin, output_size)
-
-    def convs(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        if self._to_linear is None:
-            self._to_linear = x.view(x.size(0), -1).size(1)
-        return x
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=9, kernel_size=5, stride=1, padding=3)
+        self.fc1 = nn.Linear(9 * 25 * 25, 100)
+        self.fc2 = nn.Linear(100, 2)
 
     def forward(self, x):
-        x = self.convs(x)
-        x = x.view(x.size(0), -1)
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
+        x = F.relu(self.conv1(x))
+        x = F.max_pool2d(x, kernel_size=8, stride=8)
 
+        x = F.relu(self.fc1(x.view(-1, 9 * 25 * 25)))
+        x = self.fc2(x)
+        x = F.softmax(x, dim=1)
+        return x
 
 
 
@@ -149,18 +142,7 @@ def make_img(keypoints):
     plt.close()
 
 model_path = 'model.pth'
-# 하이퍼파라미터 설정
-input_channels = 1
-hidden_channels = 16
-hidden_to_lin = 256
-lin_to_lin = 512
-output_size = 2
-batch_size = 12
-learning_rate = 0.01
-num_epochs = 100
-
-# 모델, 손실 함수 및 옵티마이저 설정
-model = CNN(input_channels, hidden_channels, hidden_to_lin, lin_to_lin, output_size).to(device)
+model = CNN().to(device)
 model.eval()
 
 cap = cv2.VideoCapture(0)
