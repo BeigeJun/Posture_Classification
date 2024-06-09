@@ -35,15 +35,18 @@ codes = [
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=9, kernel_size=5, stride=1, padding=3)
-        self.fc1 = nn.Linear(9 * 25 * 25, 100)
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=9, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(in_channels=9, out_channels=18, kernel_size=3, stride=1, padding=1)
+        self.fc1 = nn.Linear(12 * 12 * 18, 100)
         self.fc2 = nn.Linear(100, 2)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, kernel_size=8, stride=8)
+        x = F.max_pool2d(x, kernel_size=4, stride=4)
+        x = F.relu(self.conv2(x))
+        x = F.max_pool2d(x, kernel_size=4, stride=4)
 
-        x = F.relu(self.fc1(x.view(-1, 9 * 25 * 25)))
+        x = F.relu(self.fc1(x.view(-1, 18 * 12 * 12)))
         x = self.fc2(x)
         x = F.softmax(x, dim=1)
         return x
@@ -99,7 +102,7 @@ def make_img(keypoints):
     # print(changed_keypoints)
     plt.figure(figsize=(3, 5))
 
-    plt.scatter(changed_keypoints[5:17, 0], changed_keypoints[5:17, 1], color='red')
+    plt.scatter(changed_keypoints[5:17, 0], changed_keypoints[5:17, 1], color='red', s=300)
     head_x = (changed_keypoints[3, 0] + changed_keypoints[4, 0]) / 2
     head_y = (changed_keypoints[3, 1] + changed_keypoints[4, 1]) / 2
     plt.scatter(head_x, head_y, color='red', s=500)

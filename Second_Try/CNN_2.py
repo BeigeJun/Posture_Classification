@@ -27,25 +27,28 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=12, shuffle=T
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=9, kernel_size=5, stride=1, padding=3)
-        self.fc1 = nn.Linear(9 * 25 * 25, 100)
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=9, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(in_channels=9, out_channels=18, kernel_size=3, stride=1, padding=1)
+        self.fc1 = nn.Linear(12 * 12 * 18, 100)
         self.fc2 = nn.Linear(100, 2)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, kernel_size=8, stride=8)
+        x = F.max_pool2d(x, kernel_size=4, stride=4)
+        x = F.relu(self.conv2(x))
+        x = F.max_pool2d(x, kernel_size=4, stride=4)
 
-        x = F.relu(self.fc1(x.view(-1, 9 * 25 * 25)))
+        x = F.relu(self.fc1(x.view(-1, 18 * 12 * 12)))
         x = self.fc2(x)
         x = F.softmax(x, dim=1)
         return x
 
 cnn = CNN().to(device)
 criterion = torch.nn.CrossEntropyLoss()
-optimizer = optim.SGD(cnn.parameters(), lr=0.01)
+optimizer = optim.SGD(cnn.parameters(), lr=0.001)
 
 cnn.train()
-for epoch in range(500):
+for epoch in range(100000):
     running_loss = 0.0
     for i, data in enumerate(train_loader):
         inputs, labels = data
