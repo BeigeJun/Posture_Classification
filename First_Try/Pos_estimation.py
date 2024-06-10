@@ -74,9 +74,9 @@ def remake_pos(keypoints, center_pos):
         new_pos = [pos[0].item() - center_pos[0] + 1000, pos[1].item() - center_pos[1] + 1000]
         new_keypoints.append(new_pos)
 
-    for pos in keypoints:
-        pos[0] = (pos[0] - Min) / (Max - Min)
-        pos[1] = (pos[1] - Min) / (Max - Min)
+    for pos, i in keypoints:
+        new_keypoints[i][0] = (pos[0] - Min) / (Max - Min)
+        new_keypoints[i][1] = (pos[1] - Min) / (Max - Min)
 
     return new_keypoints
 
