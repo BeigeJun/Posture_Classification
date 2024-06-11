@@ -10,28 +10,29 @@ import matplotlib.patches as patches
 from matplotlib.path import Path
 import cv2
 
-cap = cv2.VideoCapture(0)
-video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/output.avi'
-
-fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter(video_path, fourcc, 20.0, (640, 480))
-
-while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    cv2.imshow('Video', frame)
-
-    out.write(frame)
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-cap.release()
-out.release()
-cv2.destroyAllWindows()
-
+# cap = cv2.VideoCapture(0)
+# video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/output.avi'
+video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/a.mp4'
+#
+# fourcc = cv2.VideoWriter_fourcc(*'XVID')
+# out = cv2.VideoWriter(video_path, fourcc, 20.0, (640, 480))
+#
+# while cap.isOpened():
+#     ret, frame = cap.read()
+#     if not ret:
+#         break
+#
+#     cv2.imshow('Video', frame)
+#
+#     out.write(frame)
+#
+#     if cv2.waitKey(1) & 0xFF == ord('q'):
+#         break
+#
+# cap.release()
+# out.release()
+# cv2.destroyAllWindows()
+#
 
 if not os.path.isfile(video_path):
     print(f'Error: {video_path} not found')
@@ -80,13 +81,14 @@ codes = [
 ]
 
 
+
 def make_skeleton(img):
     input_img = trf(img).to(device)
     out = model([input_img])[0]
     fig, ax = plt.subplots(1)
     ax.imshow(img)
     key = torch.zeros((17, 3))
-    threshold = 0.9
+    threshold = 0.999
     label_ = ''
     for box, score, points in zip(out['boxes'], out['scores'], out['keypoints']):
         score = score.detach().cpu().numpy()
@@ -144,7 +146,7 @@ with open(csv_file, mode='w', newline='') as file:
     file_list = os.listdir(directory)
     print("DATA 갯수:", len(file_list))
 
-    for cnt in range(len(file_list) - 2):
+    for cnt in range(len(file_list) - 3):
         IMAGE_SIZE = 800
         file_name = f'{directory}/image_{cnt}.jpg'
         img_Data = Image.open(file_name)

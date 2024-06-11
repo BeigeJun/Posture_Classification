@@ -98,7 +98,7 @@ for i in range(len(points)):
     print(changed_keypoints)
     plt.figure(figsize=(3, 5))
 
-    plt.scatter(changed_keypoints[i, 5:17, 0], changed_keypoints[i, 5:17, 1], color='red')
+    plt.scatter(changed_keypoints[i, 5:17, 0], changed_keypoints[i, 5:17, 1], color='red', s=300)
     head_x = (changed_keypoints[i, 3, 0] + changed_keypoints[i, 4, 0]) / 2
     head_y = (changed_keypoints[i, 3, 1] + changed_keypoints[i, 4, 1]) / 2
     plt.scatter(head_x, head_y, color='red', s=500)
@@ -110,30 +110,30 @@ for i in range(len(points)):
 
     shoulder_verts = changed_keypoints[i, [5, 6], :2]
     shoulder_path = Path(shoulder_verts, [Path.MOVETO, Path.LINETO])
-    shoulder_line = patches.PathPatch(shoulder_path, linewidth=2, facecolor='none', edgecolor='red')
+    shoulder_line = patches.PathPatch(shoulder_path, linewidth=10, facecolor='none', edgecolor='red')
     ax.add_patch(shoulder_line)
 
     for j in range(2):
         body_verts = changed_keypoints[i, [5 + j, 11 + j], :2]
         body_path = Path(body_verts, [Path.MOVETO, Path.LINETO])
-        body_line = patches.PathPatch(body_path, linewidth=2, facecolor='none', edgecolor='red')
+        body_line = patches.PathPatch(body_path, linewidth=10, facecolor='none', edgecolor='red')
         ax.add_patch(body_line)
 
     pelvis_verts = changed_keypoints[i, [11, 12], :2]
     pelvis_path = Path(pelvis_verts, [Path.MOVETO, Path.LINETO])
-    pelvis_line = patches.PathPatch(pelvis_path, linewidth=2, facecolor='none', edgecolor='red')
+    pelvis_line = patches.PathPatch(pelvis_path, linewidth=10, facecolor='none', edgecolor='red')
     ax.add_patch(pelvis_line)
 
     for j in range(2):
         verts = changed_keypoints[i, [5 + j, 7 + j, 9 + j], :2]
         path = Path(verts, codes)
-        line = patches.PathPatch(path, linewidth=2, facecolor='none', edgecolor='red')
+        line = patches.PathPatch(path, linewidth=8, facecolor='none', edgecolor='red')
         ax.add_patch(line)
 
     for j in range(2):
         verts = changed_keypoints[i, [11 + j, 13 + j, 15 + j], :2]
         path = Path(verts, codes)
-        line = patches.PathPatch(path, linewidth=2, facecolor='none', edgecolor='red')
+        line = patches.PathPatch(path, linewidth=10, facecolor='none', edgecolor='red')
         ax.add_patch(line)
 
     plt.tight_layout()
