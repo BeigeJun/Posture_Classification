@@ -24,6 +24,13 @@ skeleton = [
 ]
 
 
+def euclidean_distance(point1, point2):
+    x1, y1 = point1
+    x2, y2 = point2
+    distance = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** (1/2)
+    return distance
+
+
 def angle_between_lines(m1, m2):
     if m1 == m2:
         return 0.0
@@ -40,6 +47,7 @@ def angle_between_lines(m1, m2):
 
 def draw_keypoints(image, keypoints, threshold=0.9):
     slopes = []
+    Length = []
     for xy_conf_points in keypoints:
         points = []
         for _, (x, y, conf) in enumerate(xy_conf_points):
@@ -59,9 +67,17 @@ def draw_keypoints(image, keypoints, threshold=0.9):
                 else:
                     slope = float('inf')
                 slopes.append(slope)
-        print(angle_between_lines(slopes[7], slopes[9]), slopes[7], slopes[9])
-
+        Length.append(euclidean_distance(points[5], points[6]))
+        Length.append(euclidean_distance(points[11], points[12]))
+        #어깨랑 골반 길이로 거리 계산 허나 옆으로 돌아서 짧아지는건 어떻게 해결할지?
+        #애초에 캠 하나로 이 문제를 해결할수 있는가?
     return image, slopes
+
+def Pos_estimation(slopes):
+    if slopes[10] > -0.3 and slopes[10] < 0.3:
+        print("서있음")
+    elif slopes[10] < -0.3 or slopes[10] > 0.3:
+        print("기울어짐")
 
 while cap.isOpened():
     ret, frame = cap.read()
@@ -82,6 +98,7 @@ while cap.isOpened():
             keypoints = output['keypoints'][high_scores_idx].cpu().numpy()
             frame_with_keypoints, slopes = draw_keypoints(frame, keypoints)
             cv2.imshow('Skeleton Detection', frame_with_keypoints)
+            Pos_estimation(slopes)
         else:
             cv2.imshow('Skeleton Detection', frame)
 
