@@ -39,7 +39,8 @@ class CNN(nn.Module):
         self.conv2 = nn.Conv2d(in_channels=9, out_channels=18, kernel_size=3, stride=1, padding=1)
         self.fc1 = nn.Linear(12 * 12 * 18, 100)
         self.fc2 = nn.Linear(100, 2)
-        self.dropout = nn.Dropout(p=0.3)
+        self.dropout1 = nn.Dropout(p=0.3)
+        self.dropout2 = nn.Dropout(p=0.5)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
@@ -48,11 +49,10 @@ class CNN(nn.Module):
         x = F.max_pool2d(x, kernel_size=4, stride=4)
 
         x = x.view(-1, 18 * 12 * 12)
-        x = self.dropout(x)
+        x = self.dropout1(x)
         x = F.relu(self.fc1(x))
-        x = self.dropout(x)
+        x = self.dropout2(x)
         x = self.fc2(x)
-        x = F.softmax(x, dim=1)
         return x
 
 
