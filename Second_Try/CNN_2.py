@@ -10,7 +10,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 transform = transforms.Compose([
     transforms.Grayscale(),
-    transforms.Resize((200, 200)),
+    transforms.Resize((300, 500)),
     transforms.ToTensor(),
     transforms.Normalize((0.5,), (0.5,))
 ])
@@ -29,18 +29,18 @@ class CNN(nn.Module):
         super(CNN, self).__init__()
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=9, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(in_channels=9, out_channels=18, kernel_size=3, stride=1, padding=1)
-        self.fc1 = nn.Linear(12 * 12 * 18, 100)
-        self.fc2 = nn.Linear(100, 2)
-        self.dropout1 = nn.Dropout(p=0.3)
-        self.dropout2 = nn.Dropout(p=0.5)
+        self.fc1 = nn.Linear(75 * 125 * 18, 100)
+        self.fc2 = nn.Linear(100, 3)
+        self.dropout1 = nn.Dropout(p=0.1)
+        self.dropout2 = nn.Dropout(p=0.2)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, kernel_size=4, stride=4)
+        x = F.max_pool2d(x, kernel_size=2, stride=2)
         x = F.relu(self.conv2(x))
-        x = F.max_pool2d(x, kernel_size=4, stride=4)
+        x = F.max_pool2d(x, kernel_size=2, stride=2)
 
-        x = x.view(-1, 18 * 12 * 12)
+        x = x.view(-1, 75 * 125 * 18)
         x = self.dropout1(x)
         x = F.relu(self.fc1(x))
         x = self.dropout2(x)
