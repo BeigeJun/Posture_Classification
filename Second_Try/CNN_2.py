@@ -31,8 +31,8 @@ class CNN(nn.Module):
         self.conv2 = nn.Conv2d(in_channels=9, out_channels=18, kernel_size=3, stride=1, padding=1)
         self.fc1 = nn.Linear(75 * 125 * 18, 100)
         self.fc2 = nn.Linear(100, 3)
-        self.dropout1 = nn.Dropout(p=0.1)
-        self.dropout2 = nn.Dropout(p=0.2)
+        self.dropout1 = nn.Dropout(p=0.3)
+        self.dropout2 = nn.Dropout(p=0.5)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
@@ -49,10 +49,10 @@ class CNN(nn.Module):
 
 cnn = CNN().to(device)
 criterion = torch.nn.CrossEntropyLoss() #LogSoftmax를 포함하고 있다.
-optimizer = optim.SGD(cnn.parameters(), lr=0.01)
+optimizer = optim.SGD(cnn.parameters(), lr=0.001)
 
 cnn.train()
-for epoch in range(1000):
+for epoch in range(10000):
     running_loss = 0.0
     for i, data in enumerate(train_loader):
         inputs, labels = data
@@ -72,6 +72,8 @@ for epoch in range(1000):
 
 
 cnn.eval()
+torch.save(cnn.state_dict(), 'model.pth')
+
 correct = 0
 count = 0
 with torch.no_grad():

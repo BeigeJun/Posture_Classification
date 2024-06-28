@@ -38,9 +38,9 @@ class CNN(nn.Module):
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=9, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(in_channels=9, out_channels=18, kernel_size=3, stride=1, padding=1)
         self.fc1 = nn.Linear(12 * 12 * 18, 100)
-        self.fc2 = nn.Linear(100, 2)
-        self.dropout1 = nn.Dropout(p=0.3)
-        self.dropout2 = nn.Dropout(p=0.5)
+        self.fc2 = nn.Linear(100, 3)
+        self.dropout1 = nn.Dropout(p=0.1)
+        self.dropout2 = nn.Dropout(p=0.2)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
@@ -65,12 +65,14 @@ def make_skeleton(img):
     input_img = trf(img_pil).to(device)
     out = Skeleton_Model([input_img])[0]
     key = torch.zeros((17, 2))
+    bbox = None
     threshold = 0.9
-    for score, points in zip(out['scores'], out['keypoints']):
+    for score, points, box in zip(out['scores'], out['keypoints'], out['boxes']):
         if score >= threshold:
             key = points[:, :2].detach().cpu()
+            bbox = box.detach().cpu().numpy()
             break
-    return key
+    return key, bbox
 
 def make_center_pos(key):
     np_key = np.array(key)
@@ -152,7 +154,8 @@ model_path = 'model.pth'
 model = CNN().to(device)
 model.eval()
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+
 
 with open('C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/Max_Min.txt', 'r') as file:
     lines = file.readlines()
@@ -167,7 +170,7 @@ while True:
     IMAGE_SIZE = 800
     img_Data = Image.fromarray(frame)
     img_Data = img_Data.resize((IMAGE_SIZE, int(img_Data.height * IMAGE_SIZE / img_Data.width)))
-    key = make_skeleton(img_Data)
+    key, bbox = make_skeleton(img_Data)
     make_img(key)
     if key.numel() == 0:
         continue
@@ -186,7 +189,20 @@ while True:
         posture_text = "Sit"
     elif posture_label == 1:
         posture_text = "Stand"
+    elif posture_label == 2:
+        posture_text = "Falldown"
     print(output)
+
+    if bbox is not None:
+        x1, y1, x2, y2 = bbox
+        x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+        # Draw text background
+        (w, h), _ = cv2.getTextSize(posture_text, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
+        cv2.rectangle(frame, (x1, y1 - 30), (x1 + w, y1), (255, 0, 0), -1)
+        # Draw text
+        cv2.putText(frame, posture_text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
     cv2.putText(frame, f"Posture: {posture_text}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
     cv2.imshow('Posture Estimation', frame)

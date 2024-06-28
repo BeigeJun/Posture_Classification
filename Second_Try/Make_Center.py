@@ -85,8 +85,10 @@ print(fieldnames)
 output_folder = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/output_images'
 labeled_0 = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/Train/0'
 labeled_1 = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/Train/1'
+labeled_2 = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/Train/2'
 cnt_label_0 = 0
 cnt_label_1 = 0
+cnt_label_2 = 0
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
@@ -143,6 +145,9 @@ for i in range(len(points)):
     elif labels[i] == 'Stand':
         plt.savefig(os.path.join(labeled_1, f'image_{cnt_label_1}.png'))
         cnt_label_1 += 1
+    elif labels[i] == 'Falldown':
+        plt.savefig(os.path.join(labeled_1, f'image_{cnt_label_2}.png'))
+        cnt_label_2 += 1
     plt.close()
 
 
