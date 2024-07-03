@@ -152,6 +152,7 @@ def make_img(keypoints):
 
 model_path = 'model.pth'
 model = CNN().to(device)
+model.load_state_dict(torch.load(model_path, map_location=device))
 model.eval()
 
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)

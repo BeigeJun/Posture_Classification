@@ -235,6 +235,7 @@ def make_img(keypoints):
 
 model_path = 'model_ResNet.pth'
 model = ResNet(base_dim=64).to(device)
+model.load_state_dict(torch.load(model_path, map_location=device))
 model.eval()
 
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
