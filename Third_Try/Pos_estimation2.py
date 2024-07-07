@@ -20,19 +20,30 @@ class MLP(nn.Module):
     def __init__(self, input_size, num_classes):
         super(MLP, self).__init__()
         self.relu = nn.ReLU()
-        self.fc1 = nn.Linear(input_size, 64)
-        self.fc2 = nn.Linear(64, num_classes)
+        self.fc1 = nn.Linear(input_size, 128)
+        self.fc2 = nn.Linear(128, 256)
+        self.fc3 = nn.Linear(256, 64)
+        self.fc4 = nn.Linear(64, 16)
+        self.fc5 = nn.Linear(16, num_classes)
 
     def forward(self, x):
         out = self.fc1(x)
         out = self.relu(out)
         out = self.fc2(out)
+        out = self.relu(out)
+        out = self.fc3(out)
+        out = self.relu(out)
+        out = self.fc4(out)
+        out = self.relu(out)
+        out = self.fc5(out)
         return out
 
 
-mlp_model = MLP(input_size=12, num_classes=3)  # 예: input_size=12, num_classes=3
+mlp_model = MLP(input_size=12, num_classes=3)
+mlp_model_Second = MLP(input_size=5, num_classes=3)
 mlp_model.load_state_dict(torch.load('model_MLP.pth'))
 mlp_model = mlp_model.to(device).eval()
+mlp_model_Second = mlp_model_Second.to(device).eval()
 
 
 def make_angle(point1, point2):
@@ -45,8 +56,9 @@ def make_angle(point1, point2):
     return slope
 
 
-label_map = {0: 'Sit', 1: 'FallDown', 2: 'Stand'}
-
+label_map = {0: 'Sit_Chair', 1: 'Sit_Floor', 2: 'Stand'}
+label_map2 = {0: 'Sitting_chair', 1: 'Sitting_Floor', 2: 'Standing'}
+Label_List = []
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
@@ -85,8 +97,15 @@ while cap.isOpened():
             with torch.no_grad():
                 prediction = mlp_model(angles_tensor)
                 _, predicted_label = torch.max(prediction, 1)
-
             action_label = label_map[predicted_label.item()]
+            Label_List.append(predicted_label.item())
+            if len(Label_List) > 5:
+                Label_List.pop(0)
+                Label_tensor = torch.tensor(Label_List, dtype=torch.float32).unsqueeze(0).to(device)
+                OUTPUT = mlp_model_Second(Label_tensor)
+                _, OUTPUT_label = torch.max(OUTPUT, 1)
+                Second_label = label_map2[OUTPUT_label.item()]
+                print(Second_label)
 
             x1, y1, x2, y2 = map(int, boxes)
             cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
