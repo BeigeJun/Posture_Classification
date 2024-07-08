@@ -13,7 +13,7 @@ import cv2
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/output.avi'
 # video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/b.mp4'
-# #
+#
 # fourcc = cv2.VideoWriter_fourcc(*'XVID')
 # out = cv2.VideoWriter(video_path, fourcc, 20.0, (640, 480))
 #
@@ -37,33 +37,33 @@ video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/output.avi'
 # if not os.path.isfile(video_path):
 #     print(f'Error: {video_path} not found')
 #     exit()
-#
-# cap = cv2.VideoCapture(video_path)
-#
-# save_directory = '/Users/wns20/PycharmProjects/SMART_CCTV/captured_images'
-# if not os.path.exists(save_directory):
-#     os.makedirs(save_directory)
-#
-# count = 0
-#
-# while cap.isOpened():
-#     ret, frame = cap.read()
-#     if not ret:
-#         break
-#
-#     cv2.imshow('Video', frame)
-#
-#     key = cv2.waitKey(1)
-#     if key == ord('c'):
-#         file_name = os.path.join(save_directory, f'image_{count}.jpg')
-#         cv2.imwrite(file_name, frame)
-#         print(f'Captured image {file_name}')
-#         count += 1
-#     elif key == ord('q'):
-#         break
-#
-# cap.release()
-# cv2.destroyAllWindows()
+
+cap = cv2.VideoCapture(video_path)
+
+save_directory = '/Users/wns20/PycharmProjects/SMART_CCTV/captured_images'
+if not os.path.exists(save_directory):
+    os.makedirs(save_directory)
+
+count = 0
+
+while cap.isOpened():
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    cv2.imshow('Video', frame)
+
+    key = cv2.waitKey(1)
+    if key == ord('c'):
+        file_name = os.path.join(save_directory, f'image_{count}.jpg')
+        cv2.imwrite(file_name, frame)
+        print(f'Captured image {file_name}')
+        count += 1
+    elif key == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
 
 
 
@@ -124,11 +124,11 @@ def make_skeleton(img):
     plt.show()
     label = int(input("Label(0 : Sit, 9 : Stand) : "))
     if label == 0:
-        label_ = "Sit"
+        label_ = "Sit_floor"
     elif label == 9:
         label_ = "Stand"
     elif label == 8:
-        label_ = "Falldown"
+        label_ = "Sit_chair"
     return key, label_
 
 
