@@ -36,16 +36,24 @@ class MLP(nn.Module):
         self.fc3 = nn.Linear(256, 64)
         self.fc4 = nn.Linear(64, 16)
         self.fc5 = nn.Linear(16, num_classes)
+        self.dropout1 = nn.Dropout(p=0.1)
+        self.dropout2 = nn.Dropout(p=0.5)
+        self.dropout3 = nn.Dropout(p=0.2)
 
     def forward(self, x):
-        out = self.fc1(x)
+        out = self.dropout1(x)
+        out = self.fc1(out)
         out = self.relu(out)
+        out = self.dropout1(out)
         out = self.fc2(out)
         out = self.relu(out)
+        out = self.dropout2(out)
         out = self.fc3(out)
         out = self.relu(out)
+        out = self.dropout2(out)
         out = self.fc4(out)
         out = self.relu(out)
+        out = self.dropout3(out)
         out = self.fc5(out)
         return out
 
