@@ -41,7 +41,7 @@ with open(csv_file, mode='w', newline='') as file:
         cv2.imshow('Video', frame)
 
         key = cv2.waitKey(1)
-        if key in [ord('1'), ord('2'), ord('3')]:
+        if key in [ord('1'), ord('2'), ord('3'), ord('4'), ord('5'), ord('6'), ord('7'), ord('8'), ord('9')]:
             input_img = trf(frame).to(device)
             out = model([input_img])[0]
 
@@ -52,6 +52,18 @@ with open(csv_file, mode='w', newline='') as file:
                 label = 'Sit_chair'
             elif key == ord('3'):
                 label = 'Sit_floor'
+            elif key == ord('4'):
+                label = 'FallingDown'
+            elif key == ord('5'):
+                label = 'FallDown'
+            elif key == ord('6'):
+                label = 'Guard'
+            elif key == ord('7'):
+                label = 'Punching'
+            elif key == ord('8'):
+                label = 'Terrified'
+            elif key == ord('9'):
+                label = 'Kick'
 
             row = {}
             for i in range(len(keypoints)):
