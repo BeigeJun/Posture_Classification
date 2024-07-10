@@ -12,9 +12,13 @@ data = pd.read_csv(csv_file_path)
 X = data.drop('label', axis=1).values
 y = data['label'].values
 print(y)
+for label in y:
+    print(label,end='')
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(y)
 print(y)
+for label in y:
+    print(label,end='')
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
@@ -33,12 +37,12 @@ class MLP(nn.Module):
         self.relu = nn.ReLU()
         self.fc1 = nn.Linear(input_size, 128)
         self.fc2 = nn.Linear(128, 256)
-        self.fc3 = nn.Linear(256, 64)
-        self.fc4 = nn.Linear(64, 16)
-        self.fc5 = nn.Linear(16, num_classes)
+        self.fc3 = nn.Linear(256, 128)
+        self.fc4 = nn.Linear(128, 64)
+        self.fc5 = nn.Linear(64, num_classes)
         self.dropout1 = nn.Dropout(p=0.1)
         self.dropout2 = nn.Dropout(p=0.5)
-        self.dropout3 = nn.Dropout(p=0.2)
+        self.dropout3 = nn.Dropout(p=0.3)
 
     def forward(self, x):
         out = self.dropout1(x)
