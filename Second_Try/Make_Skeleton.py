@@ -14,29 +14,29 @@ cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/output.avi'
 # video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/b.mp4'
 #
-# fourcc = cv2.VideoWriter_fourcc(*'XVID')
-# out = cv2.VideoWriter(video_path, fourcc, 20.0, (640, 480))
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+out = cv2.VideoWriter(video_path, fourcc, 20.0, (640, 480))
+
+while cap.isOpened():
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    cv2.imshow('Video', frame)
+
+    out.write(frame)
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+out.release()
+cv2.destroyAllWindows()
 #
-# while cap.isOpened():
-#     ret, frame = cap.read()
-#     if not ret:
-#         break
-#
-#     cv2.imshow('Video', frame)
-#
-#     out.write(frame)
-#
-#     if cv2.waitKey(1) & 0xFF == ord('q'):
-#         break
-#
-# cap.release()
-# out.release()
-# cv2.destroyAllWindows()
-# #
-#
-# if not os.path.isfile(video_path):
-#     print(f'Error: {video_path} not found')
-#     exit()
+
+if not os.path.isfile(video_path):
+    print(f'Error: {video_path} not found')
+    exit()
 
 cap = cv2.VideoCapture(video_path)
 
