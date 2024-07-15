@@ -3,7 +3,7 @@ import torch
 from torchvision import models, transforms
 import numpy as np
 import torch.nn as nn
-
+print(torch.cuda.is_available())
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 keypoint_model = models.detection.keypointrcnn_resnet50_fpn(pretrained=True).to(device).eval()
