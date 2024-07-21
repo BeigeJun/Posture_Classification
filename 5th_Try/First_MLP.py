@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 
-csv_file_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/First_MLP_Data.csv'
+csv_file_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/Angle_data.csv'
 data = pd.read_csv(csv_file_path)
 
 X = data.drop('label', axis=1).values
@@ -15,8 +15,8 @@ y = data['label'].values
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(y)
 
-# for label in y:
-#     print(label, end='')
+for label in y:
+    print(label, end='')
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -27,21 +27,22 @@ y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
 train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
 test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
+
 
 class MLP(nn.Module):
     def __init__(self, input_size, num_classes):
         super(MLP, self).__init__()
         self.relu = nn.ReLU()
-        self.fc1 = nn.Linear(input_size, 256)
-        self.fc2 = nn.Linear(256, 512)
-        self.fc3 = nn.Linear(512, 256)
-        self.fc4 = nn.Linear(256, 128)
-        self.fc5 = nn.Linear(128, num_classes)
+        self.fc1 = nn.Linear(input_size, 128)
+        self.fc2 = nn.Linear(128, 256)
+        self.fc3 = nn.Linear(256, 128)
+        self.fc4 = nn.Linear(128, 64)
+        self.fc5 = nn.Linear(64, num_classes)
         self.dropout1 = nn.Dropout(p=0.1)
-        self.dropout2 = nn.Dropout(p=0.5)
-        self.dropout3 = nn.Dropout(p=0.3)
+        self.dropout2 = nn.Dropout(p=0.3)
+        self.dropout3 = nn.Dropout(p=0.2)
 
     def forward(self, x):
         out = self.dropout1(x)
@@ -59,6 +60,7 @@ class MLP(nn.Module):
         out = self.dropout3(out)
         out = self.fc5(out)
         return out
+
 
 
 input_size = X_train.shape[1]
