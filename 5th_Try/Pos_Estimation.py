@@ -15,18 +15,19 @@ def preprocess(image):
     ])
     return transform(image).unsqueeze(0).to(device)
 
+
 class First_MLP(nn.Module):
     def __init__(self, input_size, num_classes):
         super(First_MLP, self).__init__()
         self.relu = nn.ReLU()
-        self.fc1 = nn.Linear(input_size, 256)
-        self.fc2 = nn.Linear(256, 512)
-        self.fc3 = nn.Linear(512, 256)
-        self.fc4 = nn.Linear(256, 128)
-        self.fc5 = nn.Linear(128, num_classes)
+        self.fc1 = nn.Linear(input_size, 64)
+        self.fc2 = nn.Linear(64, 128)
+        self.fc3 = nn.Linear(128, 64)
+        self.fc4 = nn.Linear(64, 32)
+        self.fc5 = nn.Linear(32, num_classes)
         self.dropout1 = nn.Dropout(p=0.1)
-        self.dropout2 = nn.Dropout(p=0.5)
-        self.dropout3 = nn.Dropout(p=0.3)
+        self.dropout2 = nn.Dropout(p=0.3)
+        self.dropout3 = nn.Dropout(p=0.2)
 
     def forward(self, x):
         out = self.dropout1(x)
@@ -46,13 +47,9 @@ class First_MLP(nn.Module):
         return out
 
 
-
-first_mlp_model = First_MLP(input_size=12, num_classes=3)
-
+first_mlp_model = First_MLP(input_size=12, num_classes=6)
 first_mlp_model.load_state_dict(torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Model/First_MLP.pth'))
-
 first_mlp_model = first_mlp_model.to(device).eval()
-
 
 
 def make_angle(point1, point2):
@@ -65,7 +62,7 @@ def make_angle(point1, point2):
     return slope
 
 
-First_MLP_label_map = {0: 'Class0', 1: 'Class1', 2: 'Class2'}
+First_MLP_label_map = {0: 'FallDown', 1: 'FallingDown', 2: 'Sit_chair', 3: 'Sit_floor', 4: 'Stand', 5: 'Terrified'}
 Label_List = []
 while cap.isOpened():
     ret, frame = cap.read()
@@ -113,7 +110,6 @@ while cap.isOpened():
             (label_width, label_height), baseline = cv2.getTextSize(Out_Label, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
             cv2.rectangle(frame, (x1, y1 - label_height - baseline), (x1 + label_width, y1), (255, 0, 0), cv2.FILLED)
             cv2.putText(frame, Out_Label, (x1, y1 - baseline), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
 
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
