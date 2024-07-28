@@ -20,11 +20,11 @@ class First_MLP(nn.Module):
     def __init__(self, input_size, num_classes):
         super(First_MLP, self).__init__()
         self.relu = nn.ReLU()
-        self.fc1 = nn.Linear(input_size, 64)
-        self.fc2 = nn.Linear(64, 128)
-        self.fc3 = nn.Linear(128, 64)
-        self.fc4 = nn.Linear(64, 32)
-        self.fc5 = nn.Linear(32, num_classes)
+        self.fc1 = nn.Linear(input_size, 128)
+        self.fc2 = nn.Linear(128, 256)
+        self.fc3 = nn.Linear(256, 128)
+        self.fc4 = nn.Linear(128, 64)
+        self.fc5 = nn.Linear(64, num_classes)
         self.dropout1 = nn.Dropout(p=0.1)
         self.dropout2 = nn.Dropout(p=0.3)
         self.dropout3 = nn.Dropout(p=0.2)
@@ -77,8 +77,8 @@ while cap.isOpened():
     if len(outputs) > 0:
         output = outputs[0]
         scores = output['scores'].cpu().numpy()
-        high_scores_idx = np.where(scores > 0.9)[0]
-
+        high_scores_idx = np.where(scores > 0.95)[0]
+        print(scores)
         if len(high_scores_idx) > 0:
             keypoints = output['keypoints'][high_scores_idx[0]].cpu().numpy()
             boxes = output['boxes'][high_scores_idx[0]].cpu().numpy()
@@ -88,28 +88,34 @@ while cap.isOpened():
             angles.append(make_angle(keypoints[5], keypoints[7]))  # 왼쪽 어깨 -> 왼쪽 팔꿈치
             angles.append(make_angle(keypoints[7], keypoints[9]))  # 왼쪽 팔꿈치 -> 왼쪽 손목
             angles.append(make_angle(keypoints[6], keypoints[8]))  # 오른쪽 어깨 -> 오른쪽 팔꿈치
-            angles.append(make_angle(keypoints[8], keypoints[10])) # 오른쪽 팔꿈치 -> 오른쪽 손목
-            angles.append(make_angle(keypoints[5], keypoints[11])) # 왼쪽 어깨 -> 왼쪽 골반
-            angles.append(make_angle(keypoints[6], keypoints[12])) # 오른쪽 어깨 -> 오른쪽 골반
-            angles.append(make_angle(keypoints[11], keypoints[12]))# 왼쪽 골반 -> 오른쪽 골반
-            angles.append(make_angle(keypoints[11], keypoints[13]))# 왼쪽 골반 -> 왼쪽 무릎
-            angles.append(make_angle(keypoints[13], keypoints[15]))# 왼쪽 무릎 -> 왼쪽 발목
-            angles.append(make_angle(keypoints[12], keypoints[14]))# 오른쪽 골반 -> 오른쪽 무릎
-            angles.append(make_angle(keypoints[14], keypoints[16]))# 오른쪽 무릎 -> 오른쪽 발목
+            angles.append(make_angle(keypoints[8], keypoints[10]))  # 오른쪽 팔꿈치 -> 오른쪽 손목
+            angles.append(make_angle(keypoints[5], keypoints[11]))  # 왼쪽 어깨 -> 왼쪽 골반
+            angles.append(make_angle(keypoints[6], keypoints[12]))  # 오른쪽 어깨 -> 오른쪽 골반
+            angles.append(make_angle(keypoints[11], keypoints[12]))  # 왼쪽 골반 -> 오른쪽 골반
+            angles.append(make_angle(keypoints[11], keypoints[13]))  # 왼쪽 골반 -> 왼쪽 무릎
+            angles.append(make_angle(keypoints[13], keypoints[15]))  # 왼쪽 무릎 -> 왼쪽 발목
+            angles.append(make_angle(keypoints[12], keypoints[14]))  # 오른쪽 골반 -> 오른쪽 무릎
+            angles.append(make_angle(keypoints[14], keypoints[16]))  # 오른쪽 무릎 -> 오른쪽 발목
 
             angles_tensor = torch.tensor(angles, dtype=torch.float32).unsqueeze(0).to(device)
             with torch.no_grad():
                 prediction = first_mlp_model(angles_tensor)
                 _, predicted_label = torch.max(prediction, 1)
-            action_label_First = First_MLP_label_map[predicted_label.item()]
+            First_Label = First_MLP_label_map[predicted_label.item()]
+
+            if First_Label == 'FallDown' or First_Label == 'Terrified':
+                box_color = (0, 0, 255)
+            elif First_Label == 'FallingDown':
+                box_color = (0, 100, 255)
+            else:
+                box_color = (0, 255, 0)
 
             x1, y1, x2, y2 = map(int, boxes)
             cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
-            Out_Label = action_label_First
 
-            (label_width, label_height), baseline = cv2.getTextSize(Out_Label, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
-            cv2.rectangle(frame, (x1, y1 - label_height - baseline), (x1 + label_width, y1), (255, 0, 0), cv2.FILLED)
-            cv2.putText(frame, Out_Label, (x1, y1 - baseline), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            (label_width, label_height), baseline = cv2.getTextSize(First_Label, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
+            cv2.rectangle(frame, (x1, y1 - label_height - baseline), (x1 + label_width, y1), box_color, cv2.FILLED)
+            cv2.putText(frame, First_Label, (x1, y1 - baseline), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
