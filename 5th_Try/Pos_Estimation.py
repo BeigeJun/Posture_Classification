@@ -3,18 +3,17 @@ import torch
 from torchvision import models, transforms
 import numpy as np
 import torch.nn as nn
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 keypoint_model = models.detection.keypointrcnn_resnet50_fpn(pretrained=True).to(device).eval()
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-
 
 def preprocess(image):
     transform = transforms.Compose([
         transforms.ToTensor()
     ])
     return transform(image).unsqueeze(0).to(device)
-
 
 class First_MLP(nn.Module):
     def __init__(self, input_size, num_classes):
@@ -46,11 +45,9 @@ class First_MLP(nn.Module):
         out = self.fc5(out)
         return out
 
-
 first_mlp_model = First_MLP(input_size=12, num_classes=6)
 first_mlp_model.load_state_dict(torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Model/First_MLP.pth'))
 first_mlp_model = first_mlp_model.to(device).eval()
-
 
 def make_angle(point1, point2):
     dx = point1[0] - point2[0]
@@ -60,7 +57,6 @@ def make_angle(point1, point2):
     else:
         slope = 0
     return slope
-
 
 First_MLP_label_map = {0: 'FallDown', 1: 'FallingDown', 2: 'Sit_chair', 3: 'Sit_floor', 4: 'Stand', 5: 'Terrified'}
 Label_List = []
@@ -78,44 +74,52 @@ while cap.isOpened():
         output = outputs[0]
         scores = output['scores'].cpu().numpy()
         high_scores_idx = np.where(scores > 0.95)[0]
-        print(scores)
         if len(high_scores_idx) > 0:
             keypoints = output['keypoints'][high_scores_idx[0]].cpu().numpy()
+            keypoint_scores = output['keypoints_scores'][high_scores_idx[0]].cpu().numpy()
             boxes = output['boxes'][high_scores_idx[0]].cpu().numpy()
 
-            angles = []
-            angles.append(make_angle(keypoints[5], keypoints[6]))  # 왼쪽 어깨 -> 오른쪽 어깨
-            angles.append(make_angle(keypoints[5], keypoints[7]))  # 왼쪽 어깨 -> 왼쪽 팔꿈치
-            angles.append(make_angle(keypoints[7], keypoints[9]))  # 왼쪽 팔꿈치 -> 왼쪽 손목
-            angles.append(make_angle(keypoints[6], keypoints[8]))  # 오른쪽 어깨 -> 오른쪽 팔꿈치
-            angles.append(make_angle(keypoints[8], keypoints[10]))  # 오른쪽 팔꿈치 -> 오른쪽 손목
-            angles.append(make_angle(keypoints[5], keypoints[11]))  # 왼쪽 어깨 -> 왼쪽 골반
-            angles.append(make_angle(keypoints[6], keypoints[12]))  # 오른쪽 어깨 -> 오른쪽 골반
-            angles.append(make_angle(keypoints[11], keypoints[12]))  # 왼쪽 골반 -> 오른쪽 골반
-            angles.append(make_angle(keypoints[11], keypoints[13]))  # 왼쪽 골반 -> 왼쪽 무릎
-            angles.append(make_angle(keypoints[13], keypoints[15]))  # 왼쪽 무릎 -> 왼쪽 발목
-            angles.append(make_angle(keypoints[12], keypoints[14]))  # 오른쪽 골반 -> 오른쪽 무릎
-            angles.append(make_angle(keypoints[14], keypoints[16]))  # 오른쪽 무릎 -> 오른쪽 발목
+            check_count = 0
+            for idx, kp_score in enumerate(keypoint_scores):
+                if kp_score < 0.99:
+                    check_count += 1
 
-            angles_tensor = torch.tensor(angles, dtype=torch.float32).unsqueeze(0).to(device)
-            with torch.no_grad():
-                prediction = first_mlp_model(angles_tensor)
-                _, predicted_label = torch.max(prediction, 1)
-            First_Label = First_MLP_label_map[predicted_label.item()]
+            print(check_count)
 
-            if First_Label == 'FallDown' or First_Label == 'Terrified':
-                box_color = (0, 0, 255)
-            elif First_Label == 'FallingDown':
-                box_color = (0, 100, 255)
-            else:
-                box_color = (0, 255, 0)
+            if check_count < 3:
+                angles = []
+                angles.append(make_angle(keypoints[5], keypoints[6]))  # 왼쪽 어깨 -> 오른쪽 어깨
+                angles.append(make_angle(keypoints[5], keypoints[7]))  # 왼쪽 어깨 -> 왼쪽 팔꿈치
+                angles.append(make_angle(keypoints[7], keypoints[9]))  # 왼쪽 팔꿈치 -> 왼쪽 손목
+                angles.append(make_angle(keypoints[6], keypoints[8]))  # 오른쪽 어깨 -> 오른쪽 팔꿈치
+                angles.append(make_angle(keypoints[8], keypoints[10]))  # 오른쪽 팔꿈치 -> 오른쪽 손목
+                angles.append(make_angle(keypoints[5], keypoints[11]))  # 왼쪽 어깨 -> 왼쪽 골반
+                angles.append(make_angle(keypoints[6], keypoints[12]))  # 오른쪽 어깨 -> 오른쪽 골반
+                angles.append(make_angle(keypoints[11], keypoints[12]))  # 왼쪽 골반 -> 오른쪽 골반
+                angles.append(make_angle(keypoints[11], keypoints[13]))  # 왼쪽 골반 -> 왼쪽 무릎
+                angles.append(make_angle(keypoints[13], keypoints[15]))  # 왼쪽 무릎 -> 왼쪽 발목
+                angles.append(make_angle(keypoints[12], keypoints[14]))  # 오른쪽 골반 -> 오른쪽 무릎
+                angles.append(make_angle(keypoints[14], keypoints[16]))  # 오른쪽 무릎 -> 오른쪽 발목
 
-            x1, y1, x2, y2 = map(int, boxes)
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+                angles_tensor = torch.tensor(angles, dtype=torch.float32).unsqueeze(0).to(device)
+                with torch.no_grad():
+                    prediction = first_mlp_model(angles_tensor)
+                    _, predicted_label = torch.max(prediction, 1)
+                First_Label = First_MLP_label_map[predicted_label.item()]
 
-            (label_width, label_height), baseline = cv2.getTextSize(First_Label, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
-            cv2.rectangle(frame, (x1, y1 - label_height - baseline), (x1 + label_width, y1), box_color, cv2.FILLED)
-            cv2.putText(frame, First_Label, (x1, y1 - baseline), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                if First_Label == 'FallDown' or First_Label == 'Terrified':
+                    box_color = (0, 0, 255)
+                elif First_Label == 'FallingDown':
+                    box_color = (0, 100, 255)
+                else:
+                    box_color = (0, 255, 0)
+
+                x1, y1, x2, y2 = map(int, boxes)
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+
+                (label_width, label_height), baseline = cv2.getTextSize(First_Label, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
+                cv2.rectangle(frame, (x1, y1 - label_height - baseline), (x1 + label_width, y1), box_color, cv2.FILLED)
+                cv2.putText(frame, First_Label, (x1, y1 - baseline), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
