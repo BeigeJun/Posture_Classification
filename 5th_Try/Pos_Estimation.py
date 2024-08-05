@@ -9,11 +9,13 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 keypoint_model = models.detection.keypointrcnn_resnet50_fpn(pretrained=True).to(device).eval()
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
+
 def preprocess(image):
     transform = transforms.Compose([
         transforms.ToTensor()
     ])
     return transform(image).unsqueeze(0).to(device)
+
 
 class First_MLP(nn.Module):
     def __init__(self, input_size, num_classes):
@@ -45,18 +47,19 @@ class First_MLP(nn.Module):
         out = self.fc5(out)
         return out
 
+
 first_mlp_model = First_MLP(input_size=12, num_classes=6)
 first_mlp_model.load_state_dict(torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Model/First_MLP.pth'))
 first_mlp_model = first_mlp_model.to(device).eval()
 
+
 def make_angle(point1, point2):
-    dx = point1[0] - point2[0]
-    dy = point1[1] - point2[1]
-    if dx != 0:
-        slope = dy / dx
+    if point1[0] - point2[0] != 0:
+        slope = (point1[1] - point2[1]) / (point1[0] - point2[0])
     else:
         slope = 0
     return slope
+
 
 First_MLP_label_map = {0: 'FallDown', 1: 'FallingDown', 2: 'Sit_chair', 3: 'Sit_floor', 4: 'Stand', 5: 'Terrified'}
 Label_List = []
@@ -66,26 +69,21 @@ while cap.isOpened():
         break
 
     input_tensor = preprocess(frame)
-
     with torch.no_grad():
         outputs = keypoint_model(input_tensor)
-
-    if len(outputs) > 0:
-        output = outputs[0]
+    for i in range(len(outputs)):
+        output = outputs[i]
         scores = output['scores'].cpu().numpy()
         high_scores_idx = np.where(scores > 0.95)[0]
+
         if len(high_scores_idx) > 0:
             keypoints = output['keypoints'][high_scores_idx[0]].cpu().numpy()
             keypoint_scores = output['keypoints_scores'][high_scores_idx[0]].cpu().numpy()
             boxes = output['boxes'][high_scores_idx[0]].cpu().numpy()
-
             check_count = 0
             for idx, kp_score in enumerate(keypoint_scores):
                 if kp_score < 0.9:
                     check_count += 1
-
-            print(check_count)
-
             if check_count < 2:
                 angles = []
                 angles.append(make_angle(keypoints[5], keypoints[6]))  # 왼쪽 어깨 -> 오른쪽 어깨
