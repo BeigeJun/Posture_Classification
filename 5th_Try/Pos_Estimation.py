@@ -81,12 +81,12 @@ while cap.isOpened():
 
             check_count = 0
             for idx, kp_score in enumerate(keypoint_scores):
-                if kp_score < 0.99:
+                if kp_score < 0.9:
                     check_count += 1
 
             print(check_count)
 
-            if check_count < 3:
+            if check_count < 2:
                 angles = []
                 angles.append(make_angle(keypoints[5], keypoints[6]))  # 왼쪽 어깨 -> 오른쪽 어깨
                 angles.append(make_angle(keypoints[5], keypoints[7]))  # 왼쪽 어깨 -> 왼쪽 팔꿈치
