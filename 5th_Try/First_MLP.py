@@ -6,7 +6,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 
-# 데이터 로드 및 전처리
 csv_file_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/Angle_data.csv'
 data = pd.read_csv(csv_file_path)
 
@@ -15,6 +14,9 @@ y = data['label'].values
 
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(y)
+
+for label in y:
+    print(label, end='')
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -29,47 +31,36 @@ train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
 
 
-# 모델 정의
 class MLP(nn.Module):
     def __init__(self, input_size, num_classes):
         super(MLP, self).__init__()
+        self.relu = nn.ReLU()
         self.fc1 = nn.Linear(input_size, 32)
-        self.bn1 = nn.BatchNorm1d(32)
         self.fc2 = nn.Linear(32, 64)
-        self.bn2 = nn.BatchNorm1d(64)
         self.fc3 = nn.Linear(64, 32)
-        self.bn3 = nn.BatchNorm1d(32)
         self.fc4 = nn.Linear(32, 16)
-        self.bn4 = nn.BatchNorm1d(16)
         self.fc5 = nn.Linear(16, num_classes)
         self.dropout1 = nn.Dropout(p=0.1)
         self.dropout2 = nn.Dropout(p=0.3)
         self.dropout3 = nn.Dropout(p=0.2)
-        self.relu = nn.ReLU()
 
     def forward(self, x):
-        out = self.fc1(x)
-        out = self.bn1(out)
+        out = self.dropout1(x)
+        out = self.fc1(out)
         out = self.relu(out)
         out = self.dropout1(out)
-
         out = self.fc2(out)
-        out = self.bn2(out)
         out = self.relu(out)
         out = self.dropout2(out)
-
         out = self.fc3(out)
-        out = self.bn3(out)
         out = self.relu(out)
         out = self.dropout2(out)
-
         out = self.fc4(out)
-        out = self.bn4(out)
         out = self.relu(out)
         out = self.dropout3(out)
-
         out = self.fc5(out)
         return out
+
 
 
 input_size = X_train.shape[1]
@@ -80,7 +71,6 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 num_epochs = 50000
 
-# 모델 훈련
 for epoch in range(num_epochs):
     for i, (inputs, labels) in enumerate(train_loader):
         outputs = model(inputs)
@@ -90,15 +80,11 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
 
-    if (epoch + 1) % 100 == 0:
-        print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.10f}')
+    print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.10}')
 
-# 모델 저장
 model_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Model/First_MLP.pth'
 torch.save(model.state_dict(), model_path)
 print(f"Model saved to {model_path}")
-
-# 모델 평가
 model.eval()
 with torch.no_grad():
     correct = 0
