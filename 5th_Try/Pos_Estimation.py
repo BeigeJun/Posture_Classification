@@ -20,41 +20,30 @@ def preprocess(image):
 class First_MLP(nn.Module):
     def __init__(self, input_size, num_classes):
         super(First_MLP, self).__init__()
+        self.relu = nn.ReLU()
         self.fc1 = nn.Linear(input_size, 32)
-        self.bn1 = nn.BatchNorm1d(32)
         self.fc2 = nn.Linear(32, 64)
-        self.bn2 = nn.BatchNorm1d(64)
         self.fc3 = nn.Linear(64, 32)
-        self.bn3 = nn.BatchNorm1d(32)
         self.fc4 = nn.Linear(32, 16)
-        self.bn4 = nn.BatchNorm1d(16)
         self.fc5 = nn.Linear(16, num_classes)
         self.dropout1 = nn.Dropout(p=0.1)
         self.dropout2 = nn.Dropout(p=0.3)
         self.dropout3 = nn.Dropout(p=0.2)
-        self.relu = nn.ReLU()
 
     def forward(self, x):
-        out = self.fc1(x)
-        out = self.bn1(out)
+        out = self.dropout1(x)
+        out = self.fc1(out)
         out = self.relu(out)
         out = self.dropout1(out)
-
         out = self.fc2(out)
-        out = self.bn2(out)
         out = self.relu(out)
         out = self.dropout2(out)
-
         out = self.fc3(out)
-        out = self.bn3(out)
         out = self.relu(out)
         out = self.dropout2(out)
-
         out = self.fc4(out)
-        out = self.bn4(out)
         out = self.relu(out)
         out = self.dropout3(out)
-
         out = self.fc5(out)
         return out
 
