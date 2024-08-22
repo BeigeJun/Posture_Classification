@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-
+import torch.onnx
 csv_file_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/Angle_data.csv'
 data = pd.read_csv(csv_file_path)
 
@@ -14,9 +14,6 @@ y = data['label'].values
 
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(y)
-
-for label in y:
-    print(label, end='')
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -62,14 +59,13 @@ class MLP(nn.Module):
         return out
 
 
-
 input_size = X_train.shape[1]
 num_classes = len(label_encoder.classes_)
 model = MLP(input_size, num_classes)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
-num_epochs = 50000
+num_epochs = 500000
 
 for epoch in range(num_epochs):
     for i, (inputs, labels) in enumerate(train_loader):
@@ -80,11 +76,19 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
 
-    print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.10}')
+    if (epoch + 1) % 100 == 0:
+        print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.10f}')
 
 model_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Model/First_MLP.pth'
+onnx_model_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Model/First_MLP.onnx'
+
 torch.save(model.state_dict(), model_path)
-print(f"Model saved to {model_path}")
+
+dummy_input = torch.randn(1, input_size)
+torch.onnx.export(model, dummy_input, onnx_model_path,
+                  input_names=['input'], output_names=['output'],
+                  dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}})
+
 model.eval()
 with torch.no_grad():
     correct = 0
