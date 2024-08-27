@@ -5,30 +5,23 @@ import torch
 from torchvision import models
 import torchvision.transforms as t
 
-# 비디오 캡쳐 설정
 video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/output.avi'
 cap = cv2.VideoCapture(video_path)
-
-# CSV 파일 저장 경로 설정
 csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/pos_data.csv'
 
-# 필드명 설정
 fieldnames = []
 for i in range(17):
     fieldnames.append(f'keypoint_{i + 1}_x')
     fieldnames.append(f'keypoint_{i + 1}_y')
 fieldnames.append('label')
 
-# 모델 설정
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = models.detection.keypointrcnn_resnet50_fpn(pretrained=True).to(device).eval()
 
-# 이미지 변환 설정
 trf = t.Compose([
     t.ToTensor()
 ])
 
-# CSV 파일 열기
 with open(csv_file, mode='w', newline='') as file:
     writer = csv.DictWriter(file, fieldnames=fieldnames)
     writer.writeheader()
