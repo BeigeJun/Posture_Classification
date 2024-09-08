@@ -8,6 +8,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 keypoint_model = models.detection.keypointrcnn_resnet50_fpn(pretrained=True).to(device).eval()
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Label_dict = {'Stand': 0, 'Sit_chair': 1, 'Sit_floor': 2, 'FallingDown': 3, 'FallDown': 4,'Terrified': 5}
 
 
 def preprocess(image):
@@ -105,19 +106,27 @@ while cap.isOpened():
                     _, predicted_label = torch.max(prediction, 1)
                 First_Label = First_MLP_label_map[predicted_label.item()]
 
-                if First_Label == 'FallDown' or First_Label == 'Terrified':
-                    box_color = (0, 0, 255)
-                elif First_Label == 'FallingDown':
-                    box_color = (0, 100, 255)
-                else:
-                    box_color = (0, 255, 0)
+                Label_Changed_dict = Label_dict[First_Label]
 
-                x1, y1, x2, y2 = map(int, boxes)
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+                if len(Label_List) >= 5:
+                    Label_List.pop()
+                Label_List.append(Label_Changed_dict)
+                if len(Label_List) >= 5:
+                    Most_count_Num = max(set(Label_List), key=Label_List.count)
 
-                (label_width, label_height), baseline = cv2.getTextSize(First_Label, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
-                cv2.rectangle(frame, (x1, y1 - label_height - baseline), (x1 + label_width, y1), box_color, cv2.FILLED)
-                cv2.putText(frame, First_Label, (x1, y1 - baseline), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                    if Most_count_Num == 4 or Most_count_Num == 5:
+                        box_color = (0, 0, 255)
+                    elif Most_count_Num == 3:
+                        box_color = (0, 100, 255)
+                    else:
+                        box_color = (0, 255, 0)
+                    print(First_Label)
+                    x1, y1, x2, y2 = map(int, boxes)
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+
+                    (label_width, label_height), baseline = cv2.getTextSize(First_Label, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
+                    cv2.rectangle(frame, (x1, y1 - label_height - baseline), (x1 + label_width, y1), box_color, cv2.FILLED)
+                    cv2.putText(frame, First_Label, (x1, y1 - baseline), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
