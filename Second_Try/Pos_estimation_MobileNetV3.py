@@ -207,16 +207,12 @@ def remake_pos(keypoints, center_pos):
     for i, pos in enumerate(keypoints):
         new_keypoints[i][0] = (pos[0].item() - Min) / (Max - Min)
         new_keypoints[i][1] = (pos[1].item() - Min) / (Max - Min)
-    #     print("포스: ", pos)
-    #
-    # print(new_keypoints)
     return new_keypoints
 
 def make_img(keypoints):
     center = make_center_pos(keypoints)
     changed_pos = remake_pos(keypoints, center)
     changed_keypoints = np.array(changed_pos)
-    # print(changed_keypoints)
     plt.figure(figsize=(3, 5))
 
     plt.scatter(changed_keypoints[5:17, 0], changed_keypoints[5:17, 1], color='red', s=300)
@@ -294,7 +290,7 @@ while True:
         _, predicted = torch.max(output, 1)
         posture_label = predicted.item()
 
-        # print(posture_label)
+
     posture_text = ''
     if posture_label == 0:
         posture_text = "Sit"
