@@ -290,7 +290,6 @@ while True:
         _, predicted = torch.max(output, 1)
         posture_label = predicted.item()
 
-
     posture_text = ''
     if posture_label == 0:
         posture_text = "Sit"
