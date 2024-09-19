@@ -49,8 +49,7 @@ with open(csv_file, mode='w', newline='') as file:
                 label = 'FallingDown'
             elif key == ord('5'):
                 label = 'FallDown'
-            elif key == ord('6'):
-                label = 'Terrified'
+
 
             row = {}
             for i in range(len(keypoints)):

@@ -61,7 +61,7 @@ def make_angle(point1, point2):
     return slope
 
 
-First_MLP_label_map = {0: 'FallDown', 1: 'FallingDown', 2: 'Sit_chair', 3: 'Sit_floor', 4: 'Stand', 5: 'Terrified'}
+First_MLP_label_map = {0: 'FallDown', 1: 'FallingDown', 2: 'Sit_chair', 3: 'Sit_floor', 4: 'Stand'}
 Label_List = []
 while cap.isOpened():
     ret, frame = cap.read()
