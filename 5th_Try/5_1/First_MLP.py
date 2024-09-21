@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import torch.onnx
-csv_file_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Angle_data.csv'
+csv_file_path = '/Angle_data.csv'
 data = pd.read_csv(csv_file_path)
 
 X = data.drop('label', axis=1).values
@@ -79,8 +79,8 @@ for epoch in range(num_epochs):
     # if (epoch + 1) % 100 == 0:
     print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.10f}')
 
-model_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Model/First_MLP.pth'
-onnx_model_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Model/First_MLP.onnx'
+model_path = '/5th_Try/Model/First_MLP.pth'
+onnx_model_path = '/5th_Try/Model/First_MLP.onnx'
 
 torch.save(model.state_dict(), model_path)
 

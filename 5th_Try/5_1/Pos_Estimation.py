@@ -49,7 +49,7 @@ class First_MLP(nn.Module):
 
 
 first_mlp_model = First_MLP(input_size=12, num_classes=6)
-first_mlp_model.load_state_dict(torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Model/First_MLP.pth'))
+first_mlp_model.load_state_dict(torch.load('/5th_Try/Model/First_MLP.pth'))
 first_mlp_model = first_mlp_model.to(device).eval()
 
 
