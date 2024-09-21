@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import torch.onnx
-csv_file_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/Angle_data.csv'
+csv_file_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Angle_data.csv'
 data = pd.read_csv(csv_file_path)
 
 X = data.drop('label', axis=1).values
@@ -59,6 +59,7 @@ class MLP(nn.Module):
 
 
 input_size = X_train.shape[1]
+print(input_size)
 num_classes = len(label_encoder.classes_)
 model = MLP(input_size, num_classes)
 

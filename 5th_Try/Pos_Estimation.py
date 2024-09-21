@@ -61,7 +61,7 @@ def make_angle(point1, point2):
     return slope
 
 
-First_MLP_label_map = {0: 'FallDown', 1: 'FallingDown', 2: 'Sit_chair', 3: 'Sit_floor', 4: 'Stand'}
+First_MLP_label_map = {0: 'FallDown', 1: 'FallingDown', 2: 'Sit_chair', 3: 'Sit_floor', 4: 'Stand', 5: 'Terrified'}
 Label_List = []
 while cap.isOpened():
     ret, frame = cap.read()
@@ -98,6 +98,11 @@ while cap.isOpened():
                 angles.append(make_angle(keypoints[13], keypoints[15]))  # 왼쪽 무릎 -> 왼쪽 발목
                 angles.append(make_angle(keypoints[12], keypoints[14]))  # 오른쪽 골반 -> 오른쪽 무릎
                 angles.append(make_angle(keypoints[14], keypoints[16]))  # 오른쪽 무릎 -> 오른쪽 발목
+                Middle_shoulder = [(keypoints[5][0] + keypoints[6][0]) / 2,
+                                   (keypoints[5][1] + keypoints[6][1]) / 2]
+                Middle_pelvis = [(keypoints[11][0] + keypoints[12][0]) / 2,
+                                 (keypoints[11][1] + keypoints[12][1]) / 2]
+                angles.append(make_angle(Middle_shoulder, Middle_pelvis))  # 어깨 중앙 -> 골반 중앙
 
                 angles_tensor = torch.tensor(angles, dtype=torch.float32).unsqueeze(0).to(device)
                 with torch.no_grad():
