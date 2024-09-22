@@ -22,9 +22,7 @@ while cap.isOpened():
         break
 
     cv2.imshow('Video', frame)
-
     out.write(frame)
-
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
@@ -140,7 +138,7 @@ with open(csv_file, mode='w', newline='') as file:
     writer = csv.DictWriter(file, fieldnames=fieldnames)
     writer.writeheader()
 
-    directory = '/Users/wns20/PycharmProjects/SMART_CCTV/captured_images'
+    directory = ''
     file_list = os.listdir(directory)
     print("DATA 갯수:", len(file_list))
 
