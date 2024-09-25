@@ -5,7 +5,7 @@ import torch
 from torchvision import models
 import torchvision.transforms as t
 
-video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/output.avi'
+video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/video.mp4'
 cap = cv2.VideoCapture(video_path)
 csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/pos_data.csv'
 
