@@ -21,14 +21,14 @@ class First_MLP(nn.Module):
     def __init__(self, input_size, num_classes):
         super(First_MLP, self).__init__()
         self.relu = nn.ReLU()
-        self.fc1 = nn.Linear(input_size, 64)
-        self.fc2 = nn.Linear(64, 128)
+        self.fc1 = nn.Linear(input_size, 63)
+        self.fc2 = nn.Linear(63, 128)
         self.fc3 = nn.Linear(128, 64)
         self.fc4 = nn.Linear(64, 32)
         self.fc5 = nn.Linear(32, num_classes)
         self.dropout1 = nn.Dropout(p=0.1)
-        self.dropout2 = nn.Dropout(p=0.3)
-        self.dropout3 = nn.Dropout(p=0.2)
+        self.dropout2 = nn.Dropout(p=0.2)
+        self.dropout3 = nn.Dropout(p=0.1)
 
     def forward(self, x):
         out = self.dropout1(x)
@@ -49,7 +49,7 @@ class First_MLP(nn.Module):
 
 
 first_mlp_model = First_MLP(input_size=12, num_classes=6)
-first_mlp_model.load_state_dict(torch.load('/5th_Try/Model/First_MLP.pth'))
+first_mlp_model.load_state_dict(torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/5_3/model_MLP.pth'))
 first_mlp_model = first_mlp_model.to(device).eval()
 
 

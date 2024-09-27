@@ -77,7 +77,7 @@ for epoch in range(num_epochs):
 
     print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.10}')
 
-model_path = 'model_MLP.pth'
+model_path = 'First_model_MLP.pth'
 torch.save(model.state_dict(), model_path)
 print(f"Model saved to {model_path}")
 model.eval()
