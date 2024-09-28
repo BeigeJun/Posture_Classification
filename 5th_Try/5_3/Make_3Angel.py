@@ -67,8 +67,8 @@ keypoint_names = {
 
 
 fieldnames = []
-fieldnames.append(keypoint_names[5] + "to" + keypoint_names[11])#왼쪽 어깨 -> 왼쪽 골반
-fieldnames.append(keypoint_names[6] + "to" + keypoint_names[12])#오른쪽 어깨 -> 오른쪽 골반
+fieldnames.append(keypoint_names[5] + "to" + keypoint_names[12])#왼쪽 어깨 -> 왼쪽 골반
+fieldnames.append(keypoint_names[6] + "to" + keypoint_names[11])#오른쪽 어깨 -> 오른쪽 골반
 fieldnames.append(keypoint_names[5]+keypoint_names[6] + "to" + keypoint_names[11] + keypoint_names[12])
 fieldnames.append('label')
 
@@ -78,8 +78,8 @@ with open(csv_Angle_path, mode='w', newline='') as file:
 
     for cnt in range(lines):
         row = {}
-        row[keypoint_names[5] + "to" + keypoint_names[11]] = make_angle(points[cnt][5], points[cnt][11])
-        row[keypoint_names[6] + "to" + keypoint_names[12]] = make_angle(points[cnt][5], points[cnt][7])
+        row[keypoint_names[5] + "to" + keypoint_names[12]] = make_angle(points[cnt][5], points[cnt][11])
+        row[keypoint_names[6] + "to" + keypoint_names[11]] = make_angle(points[cnt][5], points[cnt][7])
         Middle_shoulder = [(points[cnt][5][0] + points[cnt][6][0])/2, (points[cnt][5][1] + points[cnt][6][1])/2]
         Middle_pelvis = [(points[cnt][11][0] + points[cnt][12][0])/2, (points[cnt][11][1] + points[cnt][12][1])/2]
         row[keypoint_names[5]+keypoint_names[6] + "to" + keypoint_names[11] + keypoint_names[12]] = make_angle(Middle_shoulder, Middle_pelvis)

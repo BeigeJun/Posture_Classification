@@ -31,14 +31,14 @@ class MLP(nn.Module):
     def __init__(self, input_size, num_classes):
         super(MLP, self).__init__()
         self.relu = nn.ReLU()
-        self.fc1 = nn.Linear(input_size, 63)
-        self.fc2 = nn.Linear(63, 128)
-        self.fc3 = nn.Linear(128, 64)
-        self.fc4 = nn.Linear(64, 32)
+        self.fc1 = nn.Linear(input_size, 128)
+        self.fc2 = nn.Linear(128, 512)
+        self.fc3 = nn.Linear(512, 128)
+        self.fc4 = nn.Linear(128, 32)
         self.fc5 = nn.Linear(32, num_classes)
         self.dropout1 = nn.Dropout(p=0.1)
-        self.dropout2 = nn.Dropout(p=0.2)
-        self.dropout3 = nn.Dropout(p=0.1)
+        self.dropout2 = nn.Dropout(p=0.3)
+        self.dropout3 = nn.Dropout(p=0.2)
 
     def forward(self, x):
         out = self.dropout1(x)
