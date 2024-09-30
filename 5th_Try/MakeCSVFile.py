@@ -5,9 +5,9 @@ import torch
 from torchvision import models
 import torchvision.transforms as t
 
-video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/video.mp4'
+video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/sleep.mp4'
 cap = cv2.VideoCapture(video_path)
-csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/pos_data.csv'
+csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/sleep.csv'
 
 fieldnames = []
 for i in range(17):
@@ -34,7 +34,7 @@ with open(csv_file, mode='w', newline='') as file:
         cv2.imshow('Video', frame)
 
         key = cv2.waitKey(1)
-        if key in [ord('1'), ord('2'), ord('3'), ord('4'), ord('5'), ord('6')]:
+        if key in [ord('1'), ord('2'), ord('3'), ord('4'), ord('5'), ord('6'), ord('7')]:
             input_img = trf(frame).to(device)
             out = model([input_img])[0]
 
@@ -51,6 +51,8 @@ with open(csv_file, mode='w', newline='') as file:
                 label = 'FallDown'
             elif key == ord('6'):
                 label = 'Terrified'
+            elif key == ord('7'):
+                label = 'Sleep'
 
             row = {}
             for i in range(len(keypoints)):

@@ -2,7 +2,7 @@ import csv
 import numpy as np
 import os
 csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/pos_data.csv'
-csv_Angle_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/T_Angle_data.csv'
+csv_Angle_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Data/Angle_data.csv'
 
 def read_lines(path):
     keypoints = []
@@ -86,19 +86,18 @@ with open(csv_Angle_path, mode='w', newline='') as file:
     writer.writeheader()
 
     for cnt in range(lines):
-        if labels[cnt] != 'Stand' and labels[cnt] != 'Sit_chair' and labels[cnt] != 'Sit_floor':
-            row = {}
-            row[keypoint_names[5] + "to" + keypoint_names[6]] = make_angle(points[cnt][5], points[cnt][6])
-            row[keypoint_names[5] + "to" + keypoint_names[7]] = make_angle(points[cnt][5], points[cnt][7])
-            row[keypoint_names[7] + "to" + keypoint_names[9]] = make_angle(points[cnt][7], points[cnt][9])
-            row[keypoint_names[6] + "to" + keypoint_names[8]] = make_angle(points[cnt][6], points[cnt][8])
-            row[keypoint_names[8] + "to" + keypoint_names[10]] = make_angle(points[cnt][8], points[cnt][10])
-            row[keypoint_names[5] + "to" + keypoint_names[11]] = make_angle(points[cnt][5], points[cnt][11])
-            row[keypoint_names[6] + "to" + keypoint_names[12]] = make_angle(points[cnt][6], points[cnt][12])
-            row[keypoint_names[11] + "to" + keypoint_names[12]] = make_angle(points[cnt][11], points[cnt][12])
-            row[keypoint_names[11] + "to" + keypoint_names[13]] = make_angle(points[cnt][11], points[cnt][13])
-            row[keypoint_names[13] + "to" + keypoint_names[15]] = make_angle(points[cnt][13], points[cnt][15])
-            row[keypoint_names[12] + "to" + keypoint_names[14]] = make_angle(points[cnt][12], points[cnt][14])
-            row[keypoint_names[14] + "to" + keypoint_names[16]] = make_angle(points[cnt][14], points[cnt][16])
-            row['label'] = labels[cnt]
-            writer.writerow(row)
+        row = {}
+        row[keypoint_names[5] + "to" + keypoint_names[6]] = make_angle(points[cnt][5], points[cnt][6])
+        row[keypoint_names[5] + "to" + keypoint_names[7]] = make_angle(points[cnt][5], points[cnt][7])
+        row[keypoint_names[7] + "to" + keypoint_names[9]] = make_angle(points[cnt][7], points[cnt][9])
+        row[keypoint_names[6] + "to" + keypoint_names[8]] = make_angle(points[cnt][6], points[cnt][8])
+        row[keypoint_names[8] + "to" + keypoint_names[10]] = make_angle(points[cnt][8], points[cnt][10])
+        row[keypoint_names[5] + "to" + keypoint_names[11]] = make_angle(points[cnt][5], points[cnt][11])
+        row[keypoint_names[6] + "to" + keypoint_names[12]] = make_angle(points[cnt][6], points[cnt][12])
+        row[keypoint_names[11] + "to" + keypoint_names[12]] = make_angle(points[cnt][11], points[cnt][12])
+        row[keypoint_names[11] + "to" + keypoint_names[13]] = make_angle(points[cnt][11], points[cnt][13])
+        row[keypoint_names[13] + "to" + keypoint_names[15]] = make_angle(points[cnt][13], points[cnt][15])
+        row[keypoint_names[12] + "to" + keypoint_names[14]] = make_angle(points[cnt][12], points[cnt][14])
+        row[keypoint_names[14] + "to" + keypoint_names[16]] = make_angle(points[cnt][14], points[cnt][16])
+        row['label'] = labels[cnt]
+        writer.writerow(row)
