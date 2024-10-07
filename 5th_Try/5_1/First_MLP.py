@@ -2,116 +2,144 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import torch
-from torch.utils.data import DataLoader, TensorDataset
 import torch.nn as nn
 import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import openpyxl
 
-# 데이터 로드
-csv_file_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Angle_data.csv'
+Basic_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/'
+Exel_file_path = Basic_path + 'Find_Parameters/Parameters_Exel/ParametersAndResults.xlsx'
+csv_file_path = Basic_path + '5th_Try/Data/Angle_data.csv'
 data = pd.read_csv(csv_file_path)
 
-# 12개의 각도와 13번째 각도, 라벨 분리
-X_12 = data.iloc[:, :-2].values  # 첫 12개의 각도
-X_13 = data.iloc[:, -2].values   # 13번째 각도
+
+#CSV파일 -> DataSet
+X = data.drop('label', axis=1).values
 y = data['label'].values
 
-# 라벨 인코딩
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(y)
+# for i in range(len(y)):
+#     print(y[i])
 
-# 데이터셋 분할
-X_12_train, X_12_test, X_13_train, X_13_test, y_train, y_test = train_test_split(X_12, X_13, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# 텐서 변환
-X_12_train_tensor = torch.tensor(X_12_train, dtype=torch.float32)
-X_13_train_tensor = torch.tensor(X_13_train, dtype=torch.float32).unsqueeze(1)  # 차원 추가
+X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
 y_train_tensor = torch.tensor(y_train, dtype=torch.long)
-X_12_test_tensor = torch.tensor(X_12_test, dtype=torch.float32)
-X_13_test_tensor = torch.tensor(X_13_test, dtype=torch.float32).unsqueeze(1)  # 차원 추가
+X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
 y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
-# TensorDataset 생성
-train_dataset = TensorDataset(X_12_train_tensor, X_13_train_tensor, y_train_tensor)
-test_dataset = TensorDataset(X_12_test_tensor, X_13_test_tensor, y_test_tensor)
+train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
+test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
-# DataLoader 설정
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f'Using device: {device}')
 
 
 class MLP(nn.Module):
-    def __init__(self, input_size, num_classes):
+    def __init__(self, input_size, f1_num, f2_num, f3_num, f4_num, f5_num, f6_num, d1, d2, d3, d4, d5, num_classes):
         super(MLP, self).__init__()
         self.relu = nn.ReLU()
-        self.fc1 = nn.Linear(input_size, 64)
-        self.fc2 = nn.Linear(64, 128)
-        self.fc3 = nn.Linear(128, 64)
-        self.fc4 = nn.Linear(65, 32)  # 64개 + 13번째 각도 1개
-        self.fc5 = nn.Linear(32, num_classes)
-        self.dropout1 = nn.Dropout(p=0.1)
-        self.dropout2 = nn.Dropout(p=0.3)
-        self.dropout3 = nn.Dropout(p=0.2)
+        self.softmax = nn.Softmax(dim=0)
+        self.fc1 = nn.Linear(input_size, f1_num)
+        self.fc2 = nn.Linear(f1_num, f2_num)
+        self.fc3 = nn.Linear(f2_num, f3_num)
+        self.fc4 = nn.Linear(f3_num, f4_num)
+        self.fc5 = nn.Linear(f4_num, f5_num)
+        self.fc6 = nn.Linear(f5_num, f6_num)
+        self.fc7 = nn.Linear(f6_num, num_classes)
+        self.dropout1 = nn.Dropout(p=d1)
+        self.dropout2 = nn.Dropout(p=d2)
+        self.dropout3 = nn.Dropout(p=d3)
+        self.dropout4 = nn.Dropout(p=d4)
+        self.dropout5 = nn.Dropout(p=d5)
 
-    def forward(self, x_12, x_13):
-        out = self.dropout1(x_12)
+    def forward(self, x):
+        out = self.dropout1(x)
         out = self.fc1(out)
         out = self.relu(out)
-        out = self.dropout1(out)
+        out = self.dropout2(out)
         out = self.fc2(out)
         out = self.relu(out)
-        out = self.dropout2(out)
+        out = self.dropout3(out)
         out = self.fc3(out)
         out = self.relu(out)
-        out = self.dropout2(out)
-
-        # 13번째 각도 결합
-        out = torch.cat((out, x_13), dim=1)  # 64차원 + 1차원 (13번째 각도)
-
+        out = self.dropout4(out)
         out = self.fc4(out)
         out = self.relu(out)
         out = self.dropout3(out)
         out = self.fc5(out)
+        out = self.relu(out)
+        out = self.dropout2(out)
+        out = self.fc6(out)
+        out = self.relu(out)
+        out = self.dropout1(out)
+        out = self.fc7(out)
         return out
 
 
-# 모델 초기화
-input_size = X_12_train.shape[1]  # 12개의 각도
+def initialize_weights(model):
+    for layer in model.modules():
+        if isinstance(layer, nn.Linear):
+            nn.init.xavier_uniform_(layer.weight)
+            if layer.bias is not None:
+                nn.init.zeros_(layer.bias)
+
+
+input_size = X_train.shape[1]
 num_classes = len(label_encoder.classes_)
-model = MLP(input_size=input_size, num_classes=num_classes)
+# Exel File -> Parameters
+Exel_File = openpyxl.load_workbook(Exel_file_path)
+Sheet_Read_Data = Exel_File['Parameters']
+Sheet_Save_Data = Exel_File['Results']
+for index, (input_num, h1, h2, h3, h4, h5, h6, output_num, d1, d2, d3, d4, d5, batch, optimizer, lr, epochs, name) in enumerate(Sheet_Read_Data.iter_rows(values_only=True)):
 
+    if index == 0:
+        continue
+    model = MLP(input_size, int(h1), int(h2), int(h3), int(h4), int(h5), int(h6), float(d1), float(d2), float(d3), float(d4), float(d5), int(output_num)).to(device)
+    initialize_weights(model)
+    criterion = nn.CrossEntropyLoss()
+    opt = optimizer == 'Adam'
+    if opt:
+        optimizer = optim.Adam(model.parameters(), lr=lr)
+    else:
+        optimizer = optim.SGD(model.parameters(), lr=lr)
 
-# 손실 함수 및 옵티마이저
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.0001)
-num_epochs = 1000000
+    for epoch in range(int(epochs)):
+        model.train()
+        for i, (inputs, labels) in enumerate(train_loader):
+            inputs, labels = inputs.to(device), labels.to(device)
 
-# 모델 학습
-for epoch in range(num_epochs):
-    for i, (inputs_12, input_13, labels) in enumerate(train_loader):
-        outputs = model(inputs_12, input_13)
-        loss = criterion(outputs, labels)
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-    if (epoch + 1) % 100 == 0:
-        print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}')
+        print(f'Model[{index}] Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.10}')
 
-# 모델 저장
-model_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/First_MLP.pth'
-torch.save(model.state_dict(), model_path)
+    model_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/5_1/' + str(name) + '.pth'
+    torch.save(model.state_dict(), model_path)
+    print(f"Model saved to {model_path}")
 
-# 모델 평가
-model.eval()
-with torch.no_grad():
-    correct = 0
-    total = 0
-    for inputs_12, input_13, labels in test_loader:
-        outputs = model(inputs_12, input_13)
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+    model.eval()
+    with torch.no_grad():
+        correct = 0
+        total = 0
+        for inputs, labels in test_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
 
-    accuracy = correct / total
-    print(f'Model Accuracy: {accuracy * 100:.2f}%')
+            outputs = model(inputs)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+        accuracy = correct / total
+        print(f'Model Accuracy: {accuracy * 100:.2f}%')
+        last_row = Sheet_Save_Data.max_row + 1
+        Sheet_Save_Data.cell(row=last_row, column=1).value = name
+        Sheet_Save_Data.cell(row=last_row, column=2).value = accuracy * 100
+        Exel_File.save(Exel_file_path)

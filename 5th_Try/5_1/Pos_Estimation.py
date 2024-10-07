@@ -17,39 +17,50 @@ def preprocess(image):
     return transform(image).unsqueeze(0).to(device)
 
 
-class First_MLP(nn.Module):
+class MLP(nn.Module):
     def __init__(self, input_size, num_classes):
-        super(First_MLP, self).__init__()
+        super(MLP, self).__init__()
         self.relu = nn.ReLU()
+        self.softmax = nn.Softmax(dim=0)
         self.fc1 = nn.Linear(input_size, 64)
         self.fc2 = nn.Linear(64, 128)
-        self.fc3 = nn.Linear(128, 64)
-        self.fc4 = nn.Linear(64, 32)
-        self.fc5 = nn.Linear(32, num_classes)
-        self.dropout1 = nn.Dropout(p=0.1)
-        self.dropout2 = nn.Dropout(p=0.3)
+        self.fc3 = nn.Linear(128, 256)
+        self.fc4 = nn.Linear(256, 256)
+        self.fc5 = nn.Linear(256, 128)
+        self.fc6 = nn.Linear(128, 32)
+        self.fc7 = nn.Linear(32, num_classes)
+        self.dropout1 = nn.Dropout(p=0.2)
+        self.dropout2 = nn.Dropout(p=0.2)
         self.dropout3 = nn.Dropout(p=0.2)
+        self.dropout4 = nn.Dropout(p=0.2)
+        self.dropout5 = nn.Dropout(p=0.2)
 
     def forward(self, x):
         out = self.dropout1(x)
         out = self.fc1(out)
         out = self.relu(out)
-        out = self.dropout1(out)
+        out = self.dropout2(out)
         out = self.fc2(out)
         out = self.relu(out)
-        out = self.dropout2(out)
+        out = self.dropout3(out)
         out = self.fc3(out)
         out = self.relu(out)
-        out = self.dropout2(out)
+        out = self.dropout4(out)
         out = self.fc4(out)
         out = self.relu(out)
         out = self.dropout3(out)
         out = self.fc5(out)
+        out = self.relu(out)
+        out = self.dropout2(out)
+        out = self.fc6(out)
+        out = self.relu(out)
+        out = self.dropout1(out)
+        out = self.fc7(out)
         return out
 
 
-first_mlp_model = First_MLP(input_size=12, num_classes=6)
-first_mlp_model.load_state_dict(torch.load('/5th_Try/Model/First_MLP.pth'))
+first_mlp_model = MLP(input_size=12, num_classes=7)
+first_mlp_model.load_state_dict(torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/Find_Parameters/Models_Save/Second/Adam2.pth'))
 first_mlp_model = first_mlp_model.to(device).eval()
 
 
@@ -61,7 +72,8 @@ def make_angle(point1, point2):
     return slope
 
 
-First_MLP_label_map = {0: 'FallDown', 1: 'FallingDown', 2: 'Sit_chair', 3: 'Sit_floor', 4: 'Stand', 5: 'Terrified'}
+First_MLP_label_map = {0: 'FallDown', 1: 'FallingDown', 2: 'Sit_chair', 3: 'Sit_floor', 4: 'Sleep', 5: 'Stand', 6: 'Terrified'}
+
 Label_List = []
 while cap.isOpened():
     ret, frame = cap.read()
@@ -98,11 +110,11 @@ while cap.isOpened():
                 angles.append(make_angle(keypoints[13], keypoints[15]))  # 왼쪽 무릎 -> 왼쪽 발목
                 angles.append(make_angle(keypoints[12], keypoints[14]))  # 오른쪽 골반 -> 오른쪽 무릎
                 angles.append(make_angle(keypoints[14], keypoints[16]))  # 오른쪽 무릎 -> 오른쪽 발목
-                Middle_shoulder = [(keypoints[5][0] + keypoints[6][0]) / 2,
-                                   (keypoints[5][1] + keypoints[6][1]) / 2]
-                Middle_pelvis = [(keypoints[11][0] + keypoints[12][0]) / 2,
-                                 (keypoints[11][1] + keypoints[12][1]) / 2]
-                angles.append(make_angle(Middle_shoulder, Middle_pelvis))  # 어깨 중앙 -> 골반 중앙
+                # Middle_shoulder = [(keypoints[5][0] + keypoints[6][0]) / 2,
+                #                    (keypoints[5][1] + keypoints[6][1]) / 2]
+                # Middle_pelvis = [(keypoints[11][0] + keypoints[12][0]) / 2,
+                #                  (keypoints[11][1] + keypoints[12][1]) / 2]
+                # angles.append(make_angle(Middle_shoulder, Middle_pelvis))  # 어깨 중앙 -> 골반 중앙
 
                 angles_tensor = torch.tensor(angles, dtype=torch.float32).unsqueeze(0).to(device)
                 with torch.no_grad():
@@ -117,7 +129,7 @@ while cap.isOpened():
                     Most_count_Num = max(set(Label_List), key=Label_List.count)
                     print(Label_List)
                     print(Most_count_Num)
-                    if Most_count_Num == 0 or Most_count_Num == 5:
+                    if Most_count_Num == 0 or Most_count_Num == 6:
                         box_color = (0, 0, 255)
                     elif Most_count_Num == 1:
                         box_color = (0, 100, 255)
