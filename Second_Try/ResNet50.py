@@ -11,9 +11,9 @@ transform = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
-batch_size = 50
-learning_rate = 0.0002
-num_epoch = 100
+batch_size = 64
+learning_rate = 0.0001
+num_epoch = 1000
 
 train_image_root = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/Train'
 test_image_root = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/Test'
@@ -46,18 +46,14 @@ class BottleNeck(nn.Module):
         super(BottleNeck, self).__init__()
         self.down = down
 
-        # 특성지도의 크기가 감소하는 경우
         if self.down:
             self.layer = nn.Sequential(
                 conv_block_1(in_dim, mid_dim, activation, stride=2),
                 conv_block_3(mid_dim, mid_dim, activation, stride=1),
                 conv_block_1(mid_dim, out_dim, activation, stride=1),
             )
-
-            # 특성지도 크기 + 채널을 맞춰주는 부분
             self.downsample = nn.Conv2d(in_dim, out_dim, kernel_size=1, stride=2)
 
-        # 특성지도의 크기가 그대로인 경우
         else:
             self.layer = nn.Sequential(
                 conv_block_1(in_dim, mid_dim, activation, stride=1),
@@ -65,7 +61,6 @@ class BottleNeck(nn.Module):
                 conv_block_1(mid_dim, out_dim, activation, stride=1),
             )
 
-        # 채널을 맞춰주는 부분
         self.dim_equalizer = nn.Conv2d(in_dim, out_dim, kernel_size=1)
 
     def forward(self, x):

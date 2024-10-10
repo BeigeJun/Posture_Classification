@@ -161,7 +161,7 @@ criterion = torch.nn.CrossEntropyLoss() #LogSoftmax를 포함하고 있다.
 optimizer = optim.SGD(cnn.parameters(), lr=0.001)
 
 cnn.train()
-for epoch in range(2000):
+for epoch in range(10):
     running_loss = 0.0
     for i, data in enumerate(train_loader):
         inputs, labels = data
