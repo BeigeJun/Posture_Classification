@@ -2,7 +2,7 @@ import itertools
 import pandas as pd
 
 # 상태 리스트
-states = {0: 'FallDown', 1: 'FallingDown', 2: 'Sit_chair', 3: 'Sit_floor', 4: 'Sleep', 5: 'Stand', 6: 'Terrified'}
+states = {0: 'FallDown', 1: 'FallingDown', 2: 'Sit_chair', 3: 'Sit_floor', 4: 'Sleep', 5: 'Stand'}
 
 # 3개의 인풋으로 구성된 모든 가능한 조합 생성
 combinations = list(itertools.product(states.values(), repeat=3))
@@ -26,7 +26,7 @@ for idx, combo in enumerate(combinations):
         continue
 
     # Terrified가 2번 있는 경우
-    if combo.count('Terrified') >= 2:
+    if combo.count('Sleep') >= 2:
         label = 'Danger'
         print(f"Automatically labeling {combo} as 'Danger'.\n")
         data.append(list(combo) + [label])
