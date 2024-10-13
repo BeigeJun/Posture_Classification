@@ -8,7 +8,8 @@ from collections import Counter
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 keypoint_model = models.detection.keypointrcnn_resnet50_fpn(pretrained=True).to(device).eval()
-cap = cv2.VideoCapture('C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/5_5/TestVideo/DangerSleep.mp4')
+cap = cv2.VideoCapture('C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/5_5/TestVideo/SlowSleep.mp4')
+
 
 
 def preprocess(image):
@@ -22,19 +23,18 @@ class MLP(nn.Module):
     def __init__(self, input_size, num_classes):
         super(MLP, self).__init__()
         self.relu = nn.ReLU()
-        self.softmax = nn.Softmax(dim=0)
-        self.fc1 = nn.Linear(input_size, 64)
-        self.fc2 = nn.Linear(64, 128)
-        self.fc3 = nn.Linear(128, 256)
-        self.fc4 = nn.Linear(256, 256)
-        self.fc5 = nn.Linear(256, 128)
-        self.fc6 = nn.Linear(128, 32)
-        self.fc7 = nn.Linear(32, num_classes)
+        self.fc1 = nn.Linear(input_size, 128)
+        self.fc2 = nn.Linear(128, 256)
+        self.fc3 = nn.Linear(256, 1024)
+        self.fc4 = nn.Linear(1024, 1024)
+        self.fc5 = nn.Linear(1024, 256)
+        self.fc6 = nn.Linear(256, 128)
+        self.fc7 = nn.Linear(128, num_classes)
         self.dropout1 = nn.Dropout(p=0.2)
-        self.dropout2 = nn.Dropout(p=0.2)
-        self.dropout3 = nn.Dropout(p=0.2)
-        self.dropout4 = nn.Dropout(p=0.2)
-        self.dropout5 = nn.Dropout(p=0.2)
+        self.dropout2 = nn.Dropout(p=0.3)
+        self.dropout3 = nn.Dropout(p=0.4)
+        self.dropout4 = nn.Dropout(p=0.5)
+        self.dropout5 = nn.Dropout(p=0.5)
 
     def forward(self, x):
         out = self.dropout1(x)
@@ -61,7 +61,7 @@ class MLP(nn.Module):
 
 
 first_mlp_model = MLP(input_size=12, num_classes=6)
-first_mlp_model.load_state_dict(torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/5_4/MLP_Remove_Terrified_6Label.pth'))
+first_mlp_model.load_state_dict(torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Model/MLP_Remove_Terrified_6Label.pth'))
 first_mlp_model = first_mlp_model.to(device).eval()
 
 
@@ -132,11 +132,23 @@ while cap.isOpened():
                         most_common_count_After = counterAfter.most_common(1)[0][1]
                         counterAfterLabel = counterAfter.most_common(1)[0][0]
 
-                        if most_common_count_Before > 5 and counterBeforeLabel == 1:
-                            if most_common_count_After > 5 and (counterAfterLabel == Label_List[10]):
+                        counterALL = Counter(Label_List)
+                        most_common_count_ALL = counterALL.most_common(1)[0][1]
+                        counterALLLabel = counterALL.most_common(1)[0][0]
+
+                        countFalling = counterBefore[1]
+
+
+                        if most_common_count_ALL < 15:
+                            if most_common_count_Before > 7 and counterBeforeLabel == 1:
+                                if most_common_count_After > 5 and (counterAfterLabel == 0 or counterAfterLabel == 4):
+                                    box_color = (0, 0, 255)
+
+                            elif countFalling < 3 and most_common_count_After > 5 and (counterAfterLabel == 0 or counterAfterLabel == 4):
                                 box_color = (0, 0, 255)
-                        else:
-                            box_color = (0, 100, 255)
+
+                            else:
+                                box_color = (0, 100, 255)
                     else:
                         box_color = (0, 255, 0)
 
