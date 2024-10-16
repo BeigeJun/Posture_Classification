@@ -8,8 +8,9 @@ from torch.utils.data import DataLoader, TensorDataset
 import openpyxl
 
 Basic_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/'
-Exel_file_path = Basic_path + 'Find_Parameters/Parameters_Exel/ParametersAndResults6.xlsx'
-csv_file_path = Basic_path + '5th_Try/Data/RemoveTreffied.csv'
+Exel_file_path = Basic_path + 'Find_Parameters/Parameters_Exel/03.xlsx'
+csv_file_path = Basic_path + '5th_Try/Data/Angle_data.csv'
+DName = 7
 data = pd.read_csv(csv_file_path)
 
 
@@ -121,7 +122,7 @@ for index, (input_num, h1, h2, h3, h4, h5, h6, output_num, d1, d2, d3, d4, d5, b
 
         print(f'Model[{index}] Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.10}')
 
-    model_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/5_1/' + str(name) + '.pth'
+    model_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Find_Parameters/Models_Save/'+ str(DName) + '/' + str(name) + '.pth'
     torch.save(model.state_dict(), model_path)
     print(f"Model saved to {model_path}")
 
