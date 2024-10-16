@@ -8,8 +8,7 @@ from collections import Counter
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 keypoint_model = models.detection.keypointrcnn_resnet50_fpn(pretrained=True).to(device).eval()
-cap = cv2.VideoCapture('C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/5_5/TestVideo/SlowSleep.mp4')
-
+cap = cv2.VideoCapture('C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/5_5/TestVideo/DangerSleep.mp4')
 
 
 def preprocess(image):
@@ -76,6 +75,9 @@ def make_angle(point1, point2):
 First_MLP_label_map = {0: 'FallDown', 1: 'FallingDown', 2: 'Sit_chair', 3: 'Sit_floor', 4: 'Sleep', 5: 'Stand'}
 
 Label_List = []
+
+boolHumanCheck = False
+nNotDetected = 0
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
@@ -84,6 +86,7 @@ while cap.isOpened():
     input_tensor = preprocess(frame)
     with torch.no_grad():
         outputs = keypoint_model(input_tensor)
+
     for i in range(len(outputs)):
         output = outputs[i]
         scores = output['scores'].cpu().numpy()
@@ -118,37 +121,24 @@ while cap.isOpened():
                     _, predicted_label = torch.max(prediction, 1)
                 First_Label = First_MLP_label_map[predicted_label.item()]
 
-                if len(Label_List) >= 20:
+                if len(Label_List) >= 10:
                     Label_List.pop(0)
                 Label_List.append(predicted_label.item())
-                if len(Label_List) >= 20:
-                    if Label_List[10] == 0 or Label_List[10] == 4:
+                if len(Label_List) >= 10:
+                    if Label_List[9] == 0:
 
                         counterBefore = Counter(Label_List[0:11])
                         most_common_count_Before = counterBefore.most_common(1)[0][1]
                         counterBeforeLabel = counterBefore.most_common(1)[0][0]
 
-                        counterAfter = Counter(Label_List[11:])
-                        most_common_count_After = counterAfter.most_common(1)[0][1]
-                        counterAfterLabel = counterAfter.most_common(1)[0][0]
+                        if most_common_count_Before > 8 and counterBeforeLabel == 1:
+                            box_color = (0, 0, 255)
 
-                        counterALL = Counter(Label_List)
-                        most_common_count_ALL = counterALL.most_common(1)[0][1]
-                        counterALLLabel = counterALL.most_common(1)[0][0]
+                        elif 1 in Label_List and nNotDetected >= 2:
+                            box_color = (0, 0, 255)
 
-                        countFalling = counterBefore[1]
-
-
-                        if most_common_count_ALL < 15:
-                            if most_common_count_Before > 7 and counterBeforeLabel == 1:
-                                if most_common_count_After > 5 and (counterAfterLabel == 0 or counterAfterLabel == 4):
-                                    box_color = (0, 0, 255)
-
-                            elif countFalling < 3 and most_common_count_After > 5 and (counterAfterLabel == 0 or counterAfterLabel == 4):
-                                box_color = (0, 0, 255)
-
-                            else:
-                                box_color = (0, 100, 255)
+                        else:
+                            box_color = (0, 255, 100)
                     else:
                         box_color = (0, 255, 0)
 
@@ -158,7 +148,13 @@ while cap.isOpened():
                     (label_width, label_height), baseline = cv2.getTextSize(First_Label, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
                     cv2.rectangle(frame, (x1, y1 - label_height - baseline), (x1 + label_width, y1), box_color, cv2.FILLED)
                     cv2.putText(frame, First_Label, (x1, y1 - baseline), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
+                    boolHumanCheck = True
+                    nNotDetected = 0
+            else:
+                boolHumanCheck = False
+                if nNotDetected < 5:
+                    nNotDetected += 1
+        print(nNotDetected)
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
