@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision.datasets import ImageFolder
 from torchvision import datasets, transforms
-
+from tqdm import tqdm  # tqdm 임포트
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -160,26 +160,34 @@ cnn = mobilenetv3().to(device)
 criterion = torch.nn.CrossEntropyLoss() #LogSoftmax를 포함하고 있다.
 optimizer = optim.SGD(cnn.parameters(), lr=0.001)
 
-cnn.train()
-for epoch in range(10):
-    running_loss = 0.0
-    for i, data in enumerate(train_loader):
-        inputs, labels = data
-        inputs, labels = inputs.to(device), labels.to(device)
-        optimizer.zero_grad()
+total_epochs = 100
+total_batches = len(train_loader)
 
-        outputs = cnn(inputs)
-
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
-
-        running_loss += loss.item()
-    if epoch % 10 == 9:
-        print('[%d] loss: %.10f' % (epoch + 1, running_loss / 100))
+with tqdm(total=total_batches * total_epochs, desc="Training", unit="batch") as pbar:
+    cnn.train()
+    for epoch in range(total_epochs):
         running_loss = 0.0
+        for i, data in enumerate(train_loader):
+            inputs, labels = data
+            inputs, labels = inputs.to(device), labels.to(device)
+            optimizer.zero_grad()
 
+            outputs = cnn(inputs)
 
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            running_loss += loss.item()
+
+            # 진행 상황 업데이트
+            pbar.update(1)
+
+        if epoch % 10 == 9:
+            print(f'Epoch [{epoch + 1}/{total_epochs}], Loss: {running_loss / total_batches:.10f}')
+            running_loss = 0.0
+
+# 모델 저장
 cnn.eval()
 torch.save(cnn.state_dict(), 'model.pth')
 

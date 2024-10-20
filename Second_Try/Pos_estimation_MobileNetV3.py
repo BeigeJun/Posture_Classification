@@ -3,27 +3,22 @@ import torch.nn as nn
 from torchvision import models
 import cv2
 import torchvision.transforms as t
-from torchvision import datasets, transforms
 import numpy as np
 from PIL import Image
-import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.path import Path
 import os
-import argparse
-import numpy as np
-from torch import Tensor
-from typing import Optional
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 Skeleton_Model = models.detection.keypointrcnn_resnet50_fpn(pretrained=True).to(device).eval()
 
 trf = t.Compose([
     t.ToTensor()
 ])
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+transform = t.Compose([
+    t.ToTensor(),
+    t.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
 codes = [
@@ -31,7 +26,6 @@ codes = [
     Path.LINETO,
     Path.LINETO
 ]
-
 
 def _make_divisible(v, divisor=8, min_value=None):
     if min_value is None:
@@ -41,7 +35,6 @@ def _make_divisible(v, divisor=8, min_value=None):
         new_v += divisor
     return int(new_v)
 
-
 class h_swish(nn.Module):
     def __init__(self):
         super(h_swish, self).__init__()
@@ -49,7 +42,6 @@ class h_swish(nn.Module):
 
     def forward(self, x):
         return x * (self.relu6(x + 3) / 6)
-
 
 class inverted_residual_block(nn.Module):
     def __init__(self, i, t, o, k, s, re=False, se=False):
@@ -92,7 +84,6 @@ class inverted_residual_block(nn.Module):
         if self.shortcut:
             out += x
         return out
-
 
 class mobilenetv3(nn.Module):
     def __init__(self, ver=0, w=1.0):
@@ -168,7 +159,6 @@ class mobilenetv3(nn.Module):
         out = out.view(out.size(0), -1)
         return out
 
-
 def make_skeleton(img):
     img_np = np.array(img)
     img_pil = Image.fromarray(img_np)
@@ -196,10 +186,8 @@ def make_center_pos(key):
     center_pos = [center_x, center_y]
     return center_pos
 
-
 def remake_pos(keypoints, center_pos):
     new_keypoints = []
-
     for pos in keypoints:
         new_pos = [pos[0].item() - center_pos[0] + 1000, pos[1].item() - center_pos[1] + 1000]
         new_keypoints.append(new_pos)
@@ -207,18 +195,15 @@ def remake_pos(keypoints, center_pos):
     for i, pos in enumerate(keypoints):
         new_keypoints[i][0] = (pos[0].item() - Min) / (Max - Min)
         new_keypoints[i][1] = (pos[1].item() - Min) / (Max - Min)
-    #     print("포스: ", pos)
-    #
-    # print(new_keypoints)
+
     return new_keypoints
 
 def make_img(keypoints):
     center = make_center_pos(keypoints)
     changed_pos = remake_pos(keypoints, center)
     changed_keypoints = np.array(changed_pos)
-    # print(changed_keypoints)
-    plt.figure(figsize=(3, 5))
 
+    plt.figure(figsize=(3, 5))
     plt.scatter(changed_keypoints[5:17, 0], changed_keypoints[5:17, 1], color='red', s=300)
     head_x = (changed_keypoints[3, 0] + changed_keypoints[4, 0]) / 2
     head_y = (changed_keypoints[3, 1] + changed_keypoints[4, 1]) / 2
@@ -229,36 +214,14 @@ def make_img(keypoints):
     ax.invert_xaxis()
     ax.invert_yaxis()
 
-    shoulder_verts = changed_keypoints[[5, 6], :2]
-    shoulder_path = Path(shoulder_verts, [Path.MOVETO, Path.LINETO])
-    shoulder_line = patches.PathPatch(shoulder_path, linewidth=8, facecolor='none', edgecolor='red')
-    ax.add_patch(shoulder_line)
-
-    for j in range(2):
-        body_verts = changed_keypoints[[5 + j, 11 + j], :2]
-        body_path = Path(body_verts, [Path.MOVETO, Path.LINETO])
-        body_line = patches.PathPatch(body_path, linewidth=8, facecolor='none', edgecolor='red')
-        ax.add_patch(body_line)
-
-    pelvis_verts = changed_keypoints[[11, 12], :2]
-    pelvis_path = Path(pelvis_verts, [Path.MOVETO, Path.LINETO])
-    pelvis_line = patches.PathPatch(pelvis_path, linewidth=8, facecolor='none', edgecolor='red')
-    ax.add_patch(pelvis_line)
-
-    for j in range(2):
-        verts = changed_keypoints[[5 + j, 7 + j, 9 + j], :2]
-        path = Path(verts, codes)
-        line = patches.PathPatch(path, linewidth=2, facecolor='none', edgecolor='red')
-        ax.add_patch(line)
-
-    for j in range(2):
-        verts = changed_keypoints[[11 + j, 13 + j, 15 + j], :2]
-        path = Path(verts, codes)
-        line = patches.PathPatch(path, linewidth=8, facecolor='none', edgecolor='red')
-        ax.add_patch(line)
+    # Drawing the skeleton lines
+    for i, j in [(0, 1), (0, 2), (1, 3), (2, 4), (3, 5), (4, 6), (5, 7), (6, 8), (7, 9), (8, 10), (9, 11), (10, 12), (11, 13)]:
+        if changed_keypoints[i][0] > 0 and changed_keypoints[j][0] > 0:
+            plt.plot([changed_keypoints[i][0], changed_keypoints[j][0]],
+                     [changed_keypoints[i][1], changed_keypoints[j][1]], color='blue', linewidth=2)
 
     plt.tight_layout()
-    plt.savefig(os.path.join('C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try', f'Live_img.png'))
+    plt.savefig(os.path.join('C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try', 'Live_img.png'))
     plt.close()
 
 model_path = 'model_google.pth'
@@ -267,12 +230,11 @@ model.eval()
 
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
-
 with open('C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/Max_Min.txt', 'r') as file:
     lines = file.readlines()
 Max = float(lines[0].strip())
 Min = float(lines[1].strip())
-
+print(Max)
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -293,17 +255,23 @@ while True:
         output = model(img)
         _, predicted = torch.max(output, 1)
         posture_label = predicted.item()
+        print(predicted)
 
-
+    # Updated labels based on the six posture categories
     posture_text = ''
     if posture_label == 0:
-        posture_text = "Sit"
+        posture_text = "Standing"
     elif posture_label == 1:
-        posture_text = "Stand"
+        posture_text = "Fallen"
     elif posture_label == 2:
-        posture_text = "Falldown"
-    print(output)
-
+        posture_text = "Falling"
+    elif posture_label == 3:
+        posture_text = "Sitting on Chair"
+    elif posture_label == 4:
+        posture_text = "Sitting on Floor"
+    elif posture_label == 5:
+        posture_text = "Panic"
+    print(posture_text)
     if bbox is not None:
         x1, y1, x2, y2 = bbox
         x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
