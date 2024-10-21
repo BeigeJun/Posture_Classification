@@ -11,7 +11,7 @@ from matplotlib.path import Path
 import cv2
 
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/output.avi'
+video_path = '/output.avi'
 # video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/b.mp4'
 #
 fourcc = cv2.VideoWriter_fourcc(*'XVID')

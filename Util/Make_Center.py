@@ -4,14 +4,16 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.path import Path
 import os
-csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/pos_data.csv'
-remake_csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/pos_data_remake.csv'
+
+csv_file = '/Second_Try/Frames/keypoints_labels.csv'
+remake_csv_file = '/Second_Try/keypoints_labels_remake.csv'
 
 codes = [
     Path.MOVETO,
     Path.LINETO,
     Path.LINETO
 ]
+
 
 def read_lines(path):
     keypoints = []
@@ -31,6 +33,7 @@ def read_lines(path):
             count += 1
     return keypoints, labels, count
 
+
 def make_center_pos(key, num):
     np_key = np.array(key)
     max_x = np.max(np_key[num, :, 0])
@@ -41,6 +44,7 @@ def make_center_pos(key, num):
     center_y = (max_y + min_y) / 2
     center_pos = [center_x, center_y]
     return center_pos
+
 
 def remake_pos(keypoints, center_pos):
     Max = 0
@@ -64,10 +68,11 @@ def remake_pos(keypoints, center_pos):
         for pos in row:
             pos[0] = (pos[0] - Min) / (Max - Min)
             pos[1] = (pos[1] - Min) / (Max - Min)
-    with open('Max_Min.txt', 'w') as file:
+    with open('../Second_Try/Max_Min.txt', 'w') as file:
         file.write(f"{Max}\n")
         file.write(f"{Min}\n")
     return new_keypoints
+
 
 points, labels, lines = read_lines(csv_file)
 
@@ -80,24 +85,25 @@ for i in range(11, 17):
     fieldnames.append(f'keypoint_{i}_x')
     fieldnames.append(f'keypoint_{i}_y')
 fieldnames.append('label')
-print(fieldnames)
 
-output_folder = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/output_images'
-labeled_0 = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/Train/0'
-labeled_1 = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/Train/1'
-labeled_2 = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/Train/2'
-cnt_label_0 = 0
-cnt_label_1 = 0
-cnt_label_2 = 0
+output_folder = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/Train'
+labeled_0 = os.path.join(output_folder, '0')  # Standing
+labeled_1 = os.path.join(output_folder, '1')  # Fallen
+labeled_2 = os.path.join(output_folder, '2')  # Falling
+labeled_3 = os.path.join(output_folder, '3')  # Sitting on chair
+labeled_4 = os.path.join(output_folder, '4')  # Sitting on floor
+labeled_5 = os.path.join(output_folder, '5')  # Panic
+cnt_label_0 = cnt_label_1 = cnt_label_2 = cnt_label_3 = cnt_label_4 = cnt_label_5 = 0
+
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
+cnt_label_0 = cnt_label_1 = cnt_label_2 = cnt_label_3 = cnt_label_4 = cnt_label_5 = 0
 for i in range(len(points)):
     center = make_center_pos(points, i)
     changed_pos = remake_pos(points, center)
     original_keypoints = np.array(points)
     changed_keypoints = np.array(changed_pos)
-    print(changed_keypoints)
     plt.figure(figsize=(3, 5))
 
     plt.scatter(changed_keypoints[i, 5:17, 0], changed_keypoints[i, 5:17, 1], color='red', s=300)
@@ -139,18 +145,45 @@ for i in range(len(points)):
         ax.add_patch(line)
 
     plt.tight_layout()
-    if labels[i] == 'Sit':
+
+    # 라벨 디렉토리 설정
+    output_folder = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/Train'
+    labeled_0 = os.path.join(output_folder, '0')  # Standing
+    labeled_1 = os.path.join(output_folder, '1')  # Fallen
+    labeled_2 = os.path.join(output_folder, '2')  # Falling
+    labeled_3 = os.path.join(output_folder, '3')  # Sitting on chair
+    labeled_4 = os.path.join(output_folder, '4')  # Sitting on floor
+    labeled_5 = os.path.join(output_folder, '5')  # Panic
+
+
+    for label_folder in [labeled_0, labeled_1, labeled_2, labeled_3, labeled_4, labeled_5]:
+        if not os.path.exists(label_folder):
+            os.makedirs(label_folder)
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    if labels[i] == 'Stand':
         plt.savefig(os.path.join(labeled_0, f'image_{cnt_label_0}.png'))
         cnt_label_0 += 1
-    elif labels[i] == 'Stand':
+    elif labels[i] == 'FallDown':
         plt.savefig(os.path.join(labeled_1, f'image_{cnt_label_1}.png'))
         cnt_label_1 += 1
-    elif labels[i] == 'Falldown':
-        plt.savefig(os.path.join(labeled_1, f'image_{cnt_label_2}.png'))
+    elif labels[i] == 'FallingDown':
+        plt.savefig(os.path.join(labeled_2, f'image_{cnt_label_2}.png'))
         cnt_label_2 += 1
+    elif labels[i] == 'Sit_chair':
+        plt.savefig(os.path.join(labeled_3, f'image_{cnt_label_3}.png'))
+        cnt_label_3 += 1
+    elif labels[i] == 'Sit_floor':
+        plt.savefig(os.path.join(labeled_4, f'image_{cnt_label_4}.png'))
+        cnt_label_4 += 1
+    elif labels[i] == 'Sleep':
+        plt.savefig(os.path.join(labeled_5, f'image_{cnt_label_5}.png'))
+        cnt_label_5 += 1
+
     plt.close()
 
-
+# CSV 파일 저장
 with open(remake_csv_file, mode='w', newline='') as file:
     writer = csv.DictWriter(file, fieldnames=fieldnames)
     writer.writeheader()
