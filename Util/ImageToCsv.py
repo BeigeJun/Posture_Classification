@@ -61,7 +61,6 @@ with open(csv_file, mode='w', newline='') as file:
             # 이미지 열기 및 리사이즈
             IMAGE_SIZE = 800
             img_Data = Image.open(img_path)
-            img_Data = img_Data.resize((IMAGE_SIZE, int(img_Data.height * IMAGE_SIZE / img_Data.width)))
 
             # 스켈레톤 추출
             Sceleton_1 = make_skeleton(img_Data)

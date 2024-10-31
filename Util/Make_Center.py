@@ -5,8 +5,8 @@ import matplotlib.patches as patches
 from matplotlib.path import Path
 import os
 
-csv_file = '/Second_Try/Frames/keypoints_labels.csv'
-remake_csv_file = '/Second_Try/keypoints_labels_remake.csv'
+csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/Frames/keypoints_labels.csv'
+remake_csv_file = '/Second_Try/Frames/keypoints_labels_remake.csv'
 
 codes = [
     Path.MOVETO,
@@ -68,7 +68,7 @@ def remake_pos(keypoints, center_pos):
         for pos in row:
             pos[0] = (pos[0] - Min) / (Max - Min)
             pos[1] = (pos[1] - Min) / (Max - Min)
-    with open('../Second_Try/Max_Min.txt', 'w') as file:
+    with open('../Second_Try/Frames/Max_Min.txt', 'w') as file:
         file.write(f"{Max}\n")
         file.write(f"{Min}\n")
     return new_keypoints

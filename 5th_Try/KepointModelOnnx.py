@@ -3,7 +3,7 @@ from torchvision.models.detection import keypointrcnn_resnet50_fpn, KeypointRCNN
 
 model = keypointrcnn_resnet50_fpn(weights=KeypointRCNN_ResNet50_FPN_Weights.COCO_V1)
 
-dummy_input = torch.randn(1, 3, 224, 224)
+dummy_input = torch.randn(1, 3, 480, 640)
 
 torch.onnx.export(
     model,                # 변환할 모델

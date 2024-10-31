@@ -92,7 +92,7 @@ def main() :
             return out
 
     class mobilenetv3(nn.Module):
-        def __init__(self, ver=1, w=1.0):
+        def __init__(self, ver=0, w=1.0):
             super(mobilenetv3, self).__init__()
             large = [
                 [1, 16, 3, 1, False, False],
@@ -169,7 +169,7 @@ def main() :
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = optim.Adam(cnn.parameters(), lr=0.001)
 
-    num_epochs = 5000
+    num_epochs = 3000
     patience = 1000
     patience_count = 0
     train_losses = []
@@ -190,7 +190,7 @@ def main() :
     Bottom_Loss_Train_Epoch = 0
     Bottom_Loss_Validation_Epoch = 0
 
-    save_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/MobileNet_Save/Small/'
+    save_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/MobileNet_Save/Large/'
     os.makedirs(save_path, exist_ok=True)
 
     for epoch in tqdm(range(num_epochs), desc="Epoch Progress"):
