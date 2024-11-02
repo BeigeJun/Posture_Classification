@@ -1,31 +1,19 @@
 import torch
 import torch.nn as nn
-from torchvision import models
+from torchvision import models, transforms
 import cv2
-import torchvision.transforms as t
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.path import Path
-import os
+from torchvision.models.detection import KeypointRCNN_ResNet50_FPN_Weights
+import time
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-Skeleton_Model = models.detection.keypointrcnn_resnet50_fpn(pretrained=True).to(device).eval()
 
-trf = t.Compose([
-    t.ToTensor()
-])
-transform = t.Compose([
-    t.ToTensor(),
-    t.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-])
+Skeleton_Model = models.detection.keypointrcnn_resnet50_fpn(weights=KeypointRCNN_ResNet50_FPN_Weights.DEFAULT).to(device).eval()
 
-codes = [
-    Path.MOVETO,
-    Path.LINETO,
-    Path.LINETO
-]
 
 def _make_divisible(v, divisor=8, min_value=None):
     if min_value is None:
@@ -35,6 +23,7 @@ def _make_divisible(v, divisor=8, min_value=None):
         new_v += divisor
     return int(new_v)
 
+
 class h_swish(nn.Module):
     def __init__(self):
         super(h_swish, self).__init__()
@@ -42,6 +31,7 @@ class h_swish(nn.Module):
 
     def forward(self, x):
         return x * (self.relu6(x + 3) / 6)
+
 
 class inverted_residual_block(nn.Module):
     def __init__(self, i, t, o, k, s, re=False, se=False):
@@ -84,6 +74,7 @@ class inverted_residual_block(nn.Module):
         if self.shortcut:
             out += x
         return out
+
 
 class mobilenetv3(nn.Module):
     def __init__(self, ver=0, w=1.0):
@@ -149,7 +140,7 @@ class mobilenetv3(nn.Module):
             nn.AdaptiveAvgPool2d(1),
             nn.Conv2d(out_channels * 6, last, 1, 1),
             h_swish(),
-            nn.Conv2d(last, 1000, 1, 1)
+            nn.Conv2d(last, 6, 1, 1)
         )
 
     def forward(self, x):
@@ -159,134 +150,119 @@ class mobilenetv3(nn.Module):
         out = out.view(out.size(0), -1)
         return out
 
+
+def preprocess_image(image):
+    if isinstance(image, str):
+        image = Image.open(image).convert('RGB')
+    elif isinstance(image, np.ndarray):
+        image = Image.fromarray(image)
+
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+    return transform(image).unsqueeze(0).to(device)
+
 def make_skeleton(img):
-    img_np = np.array(img)
-    img_pil = Image.fromarray(img_np)
+    input_img = preprocess_image(img)
+    with torch.no_grad():
+        out = Skeleton_Model(input_img)[0]
 
-    input_img = trf(img_pil).to(device)
-    out = Skeleton_Model([input_img])[0]
-    key = torch.zeros((17, 2))
-    bbox = None
-    threshold = 0.9
-    for score, points, box in zip(out['scores'], out['keypoints'], out['boxes']):
-        if score >= threshold:
-            key = points[:, :2].detach().cpu()
-            bbox = box.detach().cpu().numpy()
-            break
-    return key, bbox
+    keypoints = out['keypoints'][0].cpu().numpy()
 
-def make_center_pos(key):
-    np_key = np.array(key)
-    max_x = np.max(np_key[:, 0])
-    min_x = np.min(np_key[:, 0])
-    max_y = np.max(np_key[:, 1])
-    min_y = np.min(np_key[:, 1])
-    center_x = (max_x + min_x) / 2
-    center_y = (max_y + min_y) / 2
-    center_pos = [center_x, center_y]
-    return center_pos
+    fig, ax = plt.subplots(figsize=(3, 5))
 
-def remake_pos(keypoints, center_pos):
-    new_keypoints = []
-    for pos in keypoints:
-        new_pos = [pos[0].item() - center_pos[0] + 1000, pos[1].item() - center_pos[1] + 1000]
-        new_keypoints.append(new_pos)
-
-    for i, pos in enumerate(keypoints):
-        new_keypoints[i][0] = (pos[0].item() - Min) / (Max - Min)
-        new_keypoints[i][1] = (pos[1].item() - Min) / (Max - Min)
-
-    return new_keypoints
-
-def make_img(keypoints):
-    center = make_center_pos(keypoints)
-    changed_pos = remake_pos(keypoints, center)
-    changed_keypoints = np.array(changed_pos)
-
-    plt.figure(figsize=(3, 5))
-    plt.scatter(changed_keypoints[5:17, 0], changed_keypoints[5:17, 1], color='red', s=300)
-    head_x = (changed_keypoints[3, 0] + changed_keypoints[4, 0]) / 2
-    head_y = (changed_keypoints[3, 1] + changed_keypoints[4, 1]) / 2
+    plt.scatter(keypoints[5:17, 0], keypoints[5:17, 1], color='red', s=300)
+    head_x = (keypoints[3, 0] + keypoints[4, 0]) / 2
+    head_y = (keypoints[3, 1] + keypoints[4, 1]) / 2
     plt.scatter(head_x, head_y, color='red', s=500)
 
-    ax = plt.gca()
     ax.axis('off')
     ax.invert_xaxis()
     ax.invert_yaxis()
 
-    # Drawing the skeleton lines
-    for i, j in [(0, 1), (0, 2), (1, 3), (2, 4), (3, 5), (4, 6), (5, 7), (6, 8), (7, 9), (8, 10), (9, 11), (10, 12), (11, 13)]:
-        if changed_keypoints[i][0] > 0 and changed_keypoints[j][0] > 0:
-            plt.plot([changed_keypoints[i][0], changed_keypoints[j][0]],
-                     [changed_keypoints[i][1], changed_keypoints[j][1]], color='blue', linewidth=2)
+    shoulder_verts = keypoints[[5, 6], :2]
+    shoulder_path = Path(shoulder_verts, [Path.MOVETO, Path.LINETO])
+    shoulder_line = patches.PathPatch(shoulder_path, linewidth=10, facecolor='none', edgecolor='red')
+    ax.add_patch(shoulder_line)
+    start_time = time.time() * 1000
+    for j in range(2):
+        body_verts = keypoints[[5 + j, 11 + j], :2]
+        body_path = Path(body_verts, [Path.MOVETO, Path.LINETO])
+        body_line = patches.PathPatch(body_path, linewidth=10, facecolor='none', edgecolor='red')
+        ax.add_patch(body_line)
+
+    pelvis_verts = keypoints[[11, 12], :2]
+    pelvis_path = Path(pelvis_verts, [Path.MOVETO, Path.LINETO])
+    pelvis_line = patches.PathPatch(pelvis_path, linewidth=10, facecolor='none', edgecolor='red')
+    ax.add_patch(pelvis_line)
+
+    codes = [Path.MOVETO, Path.LINETO, Path.LINETO]
+    for j in range(2):
+        verts = keypoints[[5 + j, 7 + j, 9 + j], :2]
+        path = Path(verts, codes)
+        line = patches.PathPatch(path, linewidth=8, facecolor='none', edgecolor='red')
+        ax.add_patch(line)
+
+    for j in range(2):
+        verts = keypoints[[11 + j, 13 + j, 15 + j], :2]
+        path = Path(verts, codes)
+        line = patches.PathPatch(path, linewidth=10, facecolor='none', edgecolor='red')
+        ax.add_patch(line)
 
     plt.tight_layout()
-    plt.savefig(os.path.join('C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try', 'Live_img.png'))
-    plt.close()
 
-model_path = 'model_google.pth'
-model = mobilenetv3().to(device)
-model.eval()
+    fig.canvas.draw()
+    img = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+    img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    plt.close(fig)
+    return img, start_time
 
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-
-with open('C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try/Max_Min.txt', 'r') as file:
-    lines = file.readlines()
-Max = float(lines[0].strip())
-Min = float(lines[1].strip())
-print(Max)
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    IMAGE_SIZE = 800
-    img_Data = Image.fromarray(frame)
-    img_Data = img_Data.resize((IMAGE_SIZE, int(img_Data.height * IMAGE_SIZE / img_Data.width)))
-    key, bbox = make_skeleton(img_Data)
-    make_img(key)
-    if key.numel() == 0:
-        continue
-
+def predict_pose(model, image_tensor):
     with torch.no_grad():
-        img_path = os.path.join('C:/Users/wns20/PycharmProjects/SMART_CCTV/Second_Try', 'Live_img.png')
-        img = Image.open(img_path).convert('RGB')
-        img = transform(img).unsqueeze(0).to(device)
-        output = model(img)
-        _, predicted = torch.max(output, 1)
-        posture_label = predicted.item()
-        print(predicted)
+        output = model(image_tensor)
+    _, predicted = torch.max(output, 1)
+    return predicted.item()
 
-    # Updated labels based on the six posture categories
-    posture_text = ''
-    if posture_label == 0:
-        posture_text = "Standing"
-    elif posture_label == 1:
-        posture_text = "Fallen"
-    elif posture_label == 2:
-        posture_text = "Falling"
-    elif posture_label == 3:
-        posture_text = "Sitting on Chair"
-    elif posture_label == 4:
-        posture_text = "Sitting on Floor"
-    elif posture_label == 5:
-        posture_text = "Panic"
-    print(posture_text)
-    if bbox is not None:
-        x1, y1, x2, y2 = bbox
-        x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-        cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
-        (w, h), _ = cv2.getTextSize(posture_text, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
-        cv2.rectangle(frame, (x1, y1 - 30), (x1 + w, y1), (255, 0, 0), -1)
-        cv2.putText(frame, posture_text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+def main():
+    model = mobilenetv3().to(device)
+    model.load_state_dict(
+        torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/MobileNet_Save/BackUp/Large/Bottom_Loss_Validation_MLP.pth',
+                   map_location=device))
+    model.eval()
 
-    cv2.putText(frame, f"Posture: {posture_text}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    pose_names = ['Standing', 'Fallen', 'Falling', 'Sitting on chair', 'Sitting on floor', 'Sleeping']
 
-    cv2.imshow('Posture Estimation', frame)
+    cap = cv2.VideoCapture(0)
 
-    key = cv2.waitKey(1)
-    if key == ord('q'):
-        break
+    cv2.namedWindow('Real-time Pose Estimation', cv2.WINDOW_NORMAL)
+    cv2.resizeWindow('Real-time Pose Estimation', 800, 600)
 
-cap.release()
-cv2.destroyAllWindows()
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        skeleton_image, start_time = make_skeleton(frame_rgb)
+
+        skeleton_image_tensor = preprocess_image(Image.fromarray(skeleton_image))
+
+        pose_label = predict_pose(model, skeleton_image_tensor)
+        end_time = time.time() * 1000
+        print(f"prediction time : {end_time - start_time:.3f} ms")
+
+        cv2.putText(frame, f"Pose: {pose_names[pose_label]}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+        cv2.imshow('Real-time Pose Estimation', frame)
+        cv2.imshow('Skeleton Image', cv2.cvtColor(skeleton_image, cv2.COLOR_RGB2BGR))
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()

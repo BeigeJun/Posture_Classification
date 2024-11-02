@@ -6,6 +6,7 @@ import torch.nn as nn
 from collections import Counter
 import tkinter as tk
 from tkinter import messagebox
+import time
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -22,22 +23,23 @@ def preprocess(image):
     return transform(image).unsqueeze(0).to(device)
 
 
+
 class MLP(nn.Module):
-    def __init__(self, input_size, num_classes):
+    def __init__(self, input_size, f1_num, f2_num, f3_num, f4_num, f5_num, f6_num, d1, d2, d3, d4, d5, num_classes):
         super(MLP, self).__init__()
         self.relu = nn.ReLU()
-        self.fc1 = nn.Linear(input_size, 128)
-        self.fc2 = nn.Linear(128, 256)
-        self.fc3 = nn.Linear(256, 1024)
-        self.fc4 = nn.Linear(1024, 1024)
-        self.fc5 = nn.Linear(1024, 256)
-        self.fc6 = nn.Linear(256, 128)
-        self.fc7 = nn.Linear(128, num_classes)
-        self.dropout1 = nn.Dropout(p=0.2)
-        self.dropout2 = nn.Dropout(p=0.3)
-        self.dropout3 = nn.Dropout(p=0.4)
-        self.dropout4 = nn.Dropout(p=0.5)
-        self.dropout5 = nn.Dropout(p=0.5)
+        self.fc1 = nn.Linear(input_size, f1_num)
+        self.fc2 = nn.Linear(f1_num, f2_num)
+        self.fc3 = nn.Linear(f2_num, f3_num)
+        self.fc4 = nn.Linear(f3_num, f4_num)
+        self.fc5 = nn.Linear(f4_num, f5_num)
+        self.fc6 = nn.Linear(f5_num, f6_num)
+        self.fc7 = nn.Linear(f6_num, num_classes)
+        self.dropout1 = nn.Dropout(p=d1)
+        self.dropout2 = nn.Dropout(p=d2)
+        self.dropout3 = nn.Dropout(p=d3)
+        self.dropout4 = nn.Dropout(p=d4)
+        self.dropout5 = nn.Dropout(p=d5)
 
     def forward(self, x):
         out = self.dropout1(x)
@@ -63,9 +65,9 @@ class MLP(nn.Module):
         return out
 
 
-first_mlp_model = MLP(input_size=12, num_classes=6)
-first_mlp_model.load_state_dict(torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/5th_Try/Model/MLP_Remove_Terrified_6Label.pth'))
-first_mlp_model = first_mlp_model.to(device).eval()
+model = MLP(12, 64, 128, 256, 256, 128, 64, 0.2, 0.2, 0.2, 0.2, 0.2, 6)
+model.load_state_dict(torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/100ModelSave/01/Bottom_Loss_Validation_MLP.pth'))
+first_mlp_model = model.to(device).eval()
 root = tk.Tk()
 root.withdraw()
 
@@ -102,6 +104,7 @@ while cap.isOpened():
             keypoint_scores = output['keypoints_scores'][high_scores_idx[0]].cpu().numpy()
             boxes = output['boxes'][high_scores_idx[0]].cpu().numpy()
             check_count = 0
+            start_time = time.time() * 1000
             for idx, kp_score in enumerate(keypoint_scores):
                 if kp_score < 0.9:
                     check_count += 1
@@ -123,9 +126,10 @@ while cap.isOpened():
                 angles_tensor = torch.tensor(angles, dtype=torch.float32).unsqueeze(0).to(device)
                 with torch.no_grad():
                     prediction = first_mlp_model(angles_tensor)
+                    end_time = time.time() * 1000
                     _, predicted_label = torch.max(prediction, 1)
                 First_Label = First_MLP_label_map[predicted_label.item()]
-
+                print(f"prediction time : {end_time - start_time:.3f} ms")
                 if len(Label_List) >= 10:
                     Label_List.pop(0)
                 Label_List.append(predicted_label.item())
@@ -139,10 +143,12 @@ while cap.isOpened():
                         if most_common_count_Before >= 7 and (counterBeforeLabel == 1 or counterBeforeLabel == 4) :
                             box_color = (0, 0, 255)
                             show_message()
+                            Label_List.clear()
 
                         elif 1 in Label_List and nNotDetected >= 4:
                             box_color = (0, 0, 255)
                             show_message()
+                            Label_List.clear()
 
                         else:
                             box_color = (0, 255, 100)
