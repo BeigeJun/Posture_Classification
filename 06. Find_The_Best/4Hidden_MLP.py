@@ -16,9 +16,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
 Basic_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/'
-csv_file_path = Basic_path + '5th_Try/Data/Angle_data.csv'
-Exel_file_path = Basic_path + 'Final_Train_Model/3Hidden.xlsx'
-D_Name = '/3Hidden'
+csv_file_path = Basic_path + '05. MLP_With_Angle/Data/Angle_data.csv'
+Exel_file_path = Basic_path + '06. Find_The_Best/4Hidden.xlsx'
+D_Name = '/4Hidden'
 num_epochs = 500000
 patience = 100000
 
@@ -49,16 +49,17 @@ val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
 class MLP(nn.Module):
-    def __init__(self, input_size, f1_num, f2_num, f3_num, d1, d2, num_classes):
+    def __init__(self, input_size, f1_num, f2_num, f3_num, f4_num, d1, d2, d3, num_classes):
         super(MLP, self).__init__()
         self.relu = nn.ReLU()
         self.fc1 = nn.Linear(input_size, f1_num)
         self.fc2 = nn.Linear(f1_num, f2_num)
         self.fc3 = nn.Linear(f2_num, f3_num)
-        self.fc4 = nn.Linear(f3_num, num_classes)
+        self.fc4 = nn.Linear(f3_num, f4_num)
+        self.fc5 = nn.Linear(f4_num, num_classes)
         self.dropout1 = nn.Dropout(p=d1)
         self.dropout2 = nn.Dropout(p=d2)
-
+        self.dropout3 = nn.Dropout(p=d3)
 
 
     def forward(self, x):
@@ -68,11 +69,14 @@ class MLP(nn.Module):
         out = self.dropout2(out)
         out = self.fc2(out)
         out = self.relu(out)
-        out = self.dropout2(out)
+        out = self.dropout3(out)
         out = self.fc3(out)
         out = self.relu(out)
-        out = self.dropout1(out)
+        out = self.dropout2(out)
         out = self.fc4(out)
+        out = self.relu(out)
+        out = self.dropout1(out)
+        out = self.fc5(out)
         return out
 
 input_size = X_train.shape[1]
@@ -82,7 +86,7 @@ Exel_File = openpyxl.load_workbook(Exel_file_path)
 Sheet_Read_Data = Exel_File['Parameters']
 Sheet_Save_Data = Exel_File['Results']
 
-for index, (input_num, h1, h2, h3, output_num, d1, d2, batch, optimizer, lr) in enumerate(Sheet_Read_Data.iter_rows(values_only=True)):
+for index, (input_num, h1, h2, h3, h4, output_num, d1, d2, d3, batch, optimizer, lr) in enumerate(Sheet_Read_Data.iter_rows(values_only=True)):
     if index == 0:
         continue
 
@@ -90,7 +94,8 @@ for index, (input_num, h1, h2, h3, output_num, d1, d2, batch, optimizer, lr) in 
     start_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(start_time_str)
 
-    model = MLP(input_size, int(h1), int(h2), int(h3), float(d1), float(d2), int(output_num)).to(device)
+    model = MLP(input_size, int(h1), int(h2), int(h3), int(h4),  float(d1), float(d2), float(d3),
+                int(output_num)).to(device)
 
     model_path = Basic_path + 'ModelsSave' + D_Name + '/' + str(index) + '/'
     os.makedirs(model_path, exist_ok=True)
@@ -250,6 +255,19 @@ for index, (input_num, h1, h2, h3, output_num, d1, d2, batch, optimizer, lr) in 
     elapsed_time = end_time - start_time
     elapsed_time_str = f"Elapsed Time: {elapsed_time // 60} min {elapsed_time % 60} sec"
     print(elapsed_time_str)
+    model.eval()
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    test_accuracy = correct / total
+    print(f'Test Accuracy: {test_accuracy:.4f}')
 
     with open(model_path + 'numbers.txt', "w") as file:
         file.write(f"Top Accuracy Train Epoch : {Top_Accuracy_Train_Epoch} Accuracy : {Top_Accuracy_Train}\n"
@@ -257,5 +275,6 @@ for index, (input_num, h1, h2, h3, output_num, d1, d2, batch, optimizer, lr) in 
                    f"Bottom Loss Train Epoch : {Bottom_Loss_Train_Epoch} Loss : {Bottom_Loss_Train}\n"
                    f"Bottom Loss Validation Epoch : {Bottom_Loss_Validation_Epoch} Loss : {Bottom_Loss_Validation}\n"
                    f"Elapsed Time: {elapsed_time // 60} min {elapsed_time % 60:.2f} sec\n"
-                   f"Patience Count : {patience_count}/{patience}\n")
+                   f"Patience Count : {patience_count}/{patience}\n"
+                   f"Test Accuracy: {test_accuracy:.4f}")
 

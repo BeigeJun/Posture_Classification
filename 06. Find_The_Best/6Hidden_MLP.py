@@ -16,9 +16,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
 Basic_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/'
-csv_file_path = Basic_path + '5th_Try/Data/Angle_data.csv'
-Exel_file_path = Basic_path + 'Final_Train_Model/4Hidden.xlsx'
-D_Name = '/4Hidden'
+csv_file_path = Basic_path + '05. MLP_With_Angle/Data/Angle_data.csv'
+Exel_file_path = Basic_path + '06. Find_The_Best/6Hidden.xlsx'
+D_Name = '/6Hidden'
 num_epochs = 500000
 patience = 100000
 
@@ -49,17 +49,20 @@ val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
 class MLP(nn.Module):
-    def __init__(self, input_size, f1_num, f2_num, f3_num, f4_num, d1, d2, d3, num_classes):
+    def __init__(self, input_size, f1_num, f2_num, f3_num, f4_num, f5_num, f6_num, d1, d2, d3, d4, num_classes):
         super(MLP, self).__init__()
         self.relu = nn.ReLU()
         self.fc1 = nn.Linear(input_size, f1_num)
         self.fc2 = nn.Linear(f1_num, f2_num)
         self.fc3 = nn.Linear(f2_num, f3_num)
         self.fc4 = nn.Linear(f3_num, f4_num)
-        self.fc5 = nn.Linear(f4_num, num_classes)
+        self.fc5 = nn.Linear(f4_num, f5_num)
+        self.fc6 = nn.Linear(f5_num, f6_num)
+        self.fc7 = nn.Linear(f6_num, num_classes)
         self.dropout1 = nn.Dropout(p=d1)
         self.dropout2 = nn.Dropout(p=d2)
         self.dropout3 = nn.Dropout(p=d3)
+        self.dropout4 = nn.Dropout(p=d4)
 
 
     def forward(self, x):
@@ -72,11 +75,17 @@ class MLP(nn.Module):
         out = self.dropout3(out)
         out = self.fc3(out)
         out = self.relu(out)
-        out = self.dropout2(out)
+        out = self.dropout4(out)
         out = self.fc4(out)
         out = self.relu(out)
-        out = self.dropout1(out)
+        out = self.dropout3(out)
         out = self.fc5(out)
+        out = self.relu(out)
+        out = self.dropout2(out)
+        out = self.fc6(out)
+        out = self.relu(out)
+        out = self.dropout1(out)
+        out = self.fc7(out)
         return out
 
 input_size = X_train.shape[1]
@@ -86,7 +95,7 @@ Exel_File = openpyxl.load_workbook(Exel_file_path)
 Sheet_Read_Data = Exel_File['Parameters']
 Sheet_Save_Data = Exel_File['Results']
 
-for index, (input_num, h1, h2, h3, h4, output_num, d1, d2, d3, batch, optimizer, lr) in enumerate(Sheet_Read_Data.iter_rows(values_only=True)):
+for index, (input_num, h1, h2, h3, h4, h5, h6, output_num, d1, d2, d3, d4, batch, optimizer, lr) in enumerate(Sheet_Read_Data.iter_rows(values_only=True)):
     if index == 0:
         continue
 
@@ -94,8 +103,8 @@ for index, (input_num, h1, h2, h3, h4, output_num, d1, d2, d3, batch, optimizer,
     start_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(start_time_str)
 
-    model = MLP(input_size, int(h1), int(h2), int(h3), int(h4),  float(d1), float(d2), float(d3),
-                int(output_num)).to(device)
+    model = MLP(input_size, int(h1), int(h2), int(h3), int(h4), int(h5), int(h6), float(d1), float(d2), float(d3),
+                float(d4),  int(output_num)).to(device)
 
     model_path = Basic_path + 'ModelsSave' + D_Name + '/' + str(index) + '/'
     os.makedirs(model_path, exist_ok=True)
