@@ -43,8 +43,8 @@
 #         out = self.fc7(out)
 #         return out
 #
-# input_size = 12  # 입력 크기
-# num_classes = 6  # 클래스 수 (적절히 수정 필요)
+# input_size = 12
+# num_classes = 6
 # model = MLP(input_size, num_classes)
 #
 # # model.load_state_dict(torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/05.MLP_With_Angle/Model/MLP_Remove_Terrified_6Label.pth'))
@@ -60,7 +60,6 @@ import torch.nn as nn
 from fvcore.nn import FlopCountAnalysis
 
 
-# MobileNetV3 클래스 정의 (위의 코드에서 제공한 부분)
 class h_swish(nn.Module):
     def __init__(self):
         super(h_swish, self).__init__()
@@ -195,15 +194,10 @@ class mobilenetv3(nn.Module):
         return out
 
 
-# MobileNetV3 모델 초기화
 cnn = mobilenetv3()
 
-# 더미 입력 생성 (배치 크기 1, 채널 3, 높이 224, 너비 224)
 dummy_input = torch.randn(1, 3, 300, 500)
 
-# FLOPs 계산
 flops = FlopCountAnalysis(cnn, dummy_input)
 print(f"Total FLOPs: {flops.total()}")
 
-# 모델 저장
-torch.save(cnn.state_dict(), '../Find_Parameters/Check_Flops/model.pth')
