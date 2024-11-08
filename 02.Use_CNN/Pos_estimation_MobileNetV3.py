@@ -248,7 +248,7 @@ def main():
         skeleton_image, start_time = make_skeleton(frame_rgb)
 
         skeleton_image_tensor = preprocess_image(Image.fromarray(skeleton_image))
-
+        start_time = time.time() * 1000
         pose_label = predict_pose(model, skeleton_image_tensor)
         end_time = time.time() * 1000
         print(f"prediction time : {end_time - start_time:.3f} ms")
