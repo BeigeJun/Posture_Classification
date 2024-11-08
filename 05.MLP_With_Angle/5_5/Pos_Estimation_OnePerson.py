@@ -104,7 +104,6 @@ while cap.isOpened():
             keypoint_scores = output['keypoints_scores'][high_scores_idx[0]].cpu().numpy()
             boxes = output['boxes'][high_scores_idx[0]].cpu().numpy()
             check_count = 0
-            start_time = time.time() * 1000
             for idx, kp_score in enumerate(keypoint_scores):
                 if kp_score < 0.9:
                     check_count += 1
@@ -125,6 +124,7 @@ while cap.isOpened():
 
                 angles_tensor = torch.tensor(angles, dtype=torch.float32).unsqueeze(0).to(device)
                 with torch.no_grad():
+                    start_time = time.time() * 1000
                     prediction = first_mlp_model(angles_tensor)
                     end_time = time.time() * 1000
                     _, predicted_label = torch.max(prediction, 1)
