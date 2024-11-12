@@ -4,12 +4,13 @@ from torchvision import models, transforms
 import numpy as np
 import torch.nn as nn
 from collections import Counter
+from tkinter import messagebox
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 keypoint_model = models.detection.keypointrcnn_resnet50_fpn(pretrained=True).to(device).eval()
 # cap = cv2.VideoCapture('C:/Users/wns20/PycharmProjects/SMART_CCTV/05.MLP_With_Angle/5_5/TestVideo/DangerSleep.mp4')
-cap = cv2.VideoCapture('/05.MLP_With_Angle/Data/TALL.mp4')
+cap = cv2.VideoCapture('C:/Users/wns20/Desktop/z.mp4')
 
 
 def preprocess(image):
@@ -18,18 +19,20 @@ def preprocess(image):
     ])
     return transform(image).unsqueeze(0).to(device)
 
+def show_message():
+    messagebox.showinfo("경고", "낙상이 감지 되었습니다!")
 
 class MLP(nn.Module):
     def __init__(self, input_size, num_classes):
         super(MLP, self).__init__()
         self.relu = nn.ReLU()
-        self.fc1 = nn.Linear(input_size, 128)
-        self.fc2 = nn.Linear(128, 256)
-        self.fc3 = nn.Linear(256, 1024)
-        self.fc4 = nn.Linear(1024, 1024)
-        self.fc5 = nn.Linear(1024, 256)
-        self.fc6 = nn.Linear(256, 128)
-        self.fc7 = nn.Linear(128, num_classes)
+        self.fc1 = nn.Linear(input_size, 64)
+        self.fc2 = nn.Linear(64, 128)
+        self.fc3 = nn.Linear(128, 256)
+        self.fc4 = nn.Linear(256, 256)
+        self.fc5 = nn.Linear(256, 128)
+        self.fc6 = nn.Linear(128, 64)
+        self.fc7 = nn.Linear(64, num_classes)
         self.dropout1 = nn.Dropout(p=0.2)
         self.dropout2 = nn.Dropout(p=0.3)
         self.dropout3 = nn.Dropout(p=0.4)
@@ -61,7 +64,7 @@ class MLP(nn.Module):
 
 
 first_mlp_model = MLP(input_size=12, num_classes=6)
-first_mlp_model.load_state_dict(torch.load('/05.MLP_With_Angle/Model/MLP_Remove_Terrified_6Label.pth'))
+first_mlp_model.load_state_dict(torch.load('Bottom_Loss_Validation_MLP.pth'))
 first_mlp_model = first_mlp_model.to(device).eval()
 
 
@@ -81,6 +84,7 @@ boolHumanCheck = False
 nNotDetected = 0
 while cap.isOpened():
     ret, frame = cap.read()
+    boolFallCheck = False
     if not ret:
         break
 
@@ -92,7 +96,7 @@ while cap.isOpened():
         output = outputs[i]
         scores = output['scores'].cpu().numpy()
         high_scores_idx = np.where(scores > 0.95)[0]
-
+        print(len(high_scores_idx))
         if len(high_scores_idx) > 0:
             keypoints = output['keypoints'][high_scores_idx[0]].cpu().numpy()
             keypoint_scores = output['keypoints_scores'][high_scores_idx[0]].cpu().numpy()
@@ -134,9 +138,13 @@ while cap.isOpened():
 
                         if most_common_count_Before > 8 and counterBeforeLabel == 1:
                             box_color = (0, 0, 255)
+                            boolFallCheck = True
+                            Label_List.clear()
 
                         elif 1 in Label_List and nNotDetected >= 2:
                             box_color = (0, 0, 255)
+                            boolFallCheck = True
+                            Label_List.clear()
 
                         else:
                             box_color = (0, 255, 100)
@@ -155,8 +163,12 @@ while cap.isOpened():
                 boolHumanCheck = False
                 if nNotDetected < 5:
                     nNotDetected += 1
+        if nNotDetected < 5:
+            nNotDetected += 1
         print(nNotDetected)
     cv2.imshow('frame', frame)
+    if boolFallCheck == True:
+        show_message()
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
