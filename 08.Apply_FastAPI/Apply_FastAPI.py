@@ -315,17 +315,18 @@ async def generate_frames():
             elif current_mode == "2" or current_mode == "4":
                 frame, boolFallCheck, nNotDetected, Label = Several_Person_Detection(frame, outputs, nNotDetected)
 
-            #낙상 감지하면 프레임 날리기
-            if boolFallCheck == True:
-                success = await send_label_and_image_to_spring(Label, frame)
-                if not success:
-                    print("위험 감지 알림 전송 실패")
-                else:
-                    print("위험 감지 알림 전송 성공")
-                boolFallCheck = False
 
         else:
             nNotDetected = min(nNotDetected + 1, 5)
+
+            # 낙상 감지하면 프레임 날리기
+        if boolFallCheck == True:
+            success = await send_label_and_image_to_spring(Label, frame)
+            if not success:
+                print("위험 감지 알림 전송 실패")
+            else:
+                print("위험 감지 알림 전송 성공")
+            boolFallCheck = False
 
         # 화면 송출할 이미지 설정
         _, buffer = cv2.imencode('.jpg', frame)
