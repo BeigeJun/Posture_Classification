@@ -57,7 +57,7 @@ learning_rate = 0.01
 num_epochs = 10000
 
 
-dataset = CustomDataset('C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/pos_data_remake.csv')
+dataset = CustomDataset('//captured_images/pos_data_remake.csv')
 
 train_indices, test_indices = train_test_split(range(len(dataset)), test_size=0.33, random_state=42, shuffle=True)
 train_dataset = Subset(dataset, train_indices)

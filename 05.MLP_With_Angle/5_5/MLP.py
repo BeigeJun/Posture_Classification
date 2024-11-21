@@ -7,7 +7,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import openpyxl
 
-Basic_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/'
+Basic_path = '//'
 Exel_file_path = Basic_path + 'Find_Parameters/Parameters_Exel/03.xlsx'
 csv_file_path = Basic_path + '05.MLP_With_Angle/Data/Angle_data.csv'
 DName = 7

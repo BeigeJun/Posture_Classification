@@ -6,11 +6,11 @@ from torchvision import models
 import torchvision.transforms as t
 
 # 비디오 캡쳐 설정
-video_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/output.avi'
+video_path = '//output.avi'
 cap = cv2.VideoCapture(video_path)
 
 # CSV 파일 저장 경로 설정
-csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/pos_data.csv'
+csv_file = '//captured_images/pos_data.csv'
 
 # 필드명 설정
 fieldnames = []

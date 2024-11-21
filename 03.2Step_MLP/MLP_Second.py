@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 
-csv_file_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Angle_data_MLP_Second.csv'
+csv_file_path = '//Angle_data_MLP_Second.csv'
 data = pd.read_csv(csv_file_path)
 
 X = data.drop('Label', axis=1).values

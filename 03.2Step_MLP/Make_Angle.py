@@ -1,8 +1,8 @@
 import csv
 import numpy as np
 import os
-csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/pos_data.csv'
-csv_Angle_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Angle_data.csv'
+csv_file = '//captured_images/pos_data.csv'
+csv_Angle_path = '//Angle_data.csv'
 
 def read_lines(path):
     keypoints = []

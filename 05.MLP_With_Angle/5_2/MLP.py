@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 
-csv_file_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/Angle_data.csv'
+csv_file_path = '//Angle_data.csv'
 data = pd.read_csv(csv_file_path)
 
 X_12 = data.iloc[:, :-2].values
@@ -89,7 +89,7 @@ for epoch in range(num_epochs):
         print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.10f}')
 
 
-model_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/First_MLP.pth'
+model_path = '//First_MLP.pth'
 torch.save(model.state_dict(), model_path)
 
 

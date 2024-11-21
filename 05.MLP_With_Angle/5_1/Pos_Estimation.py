@@ -60,7 +60,7 @@ class MLP(nn.Module):
 
 
 first_mlp_model = MLP(input_size=12, num_classes=7)
-first_mlp_model.load_state_dict(torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/Find_Parameters/Models_Save/Second/Adam2.pth'))
+first_mlp_model.load_state_dict(torch.load('//Find_Parameters/Models_Save/Second/Adam2.pth'))
 first_mlp_model = first_mlp_model.to(device).eval()
 
 

@@ -16,7 +16,7 @@ start_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 print(device)
 print(start_time_str)
 
-Basic_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/'
+Basic_path = '//'
 csv_file_path = Basic_path + '05.MLP_With_Angle/Data/Angle_data.csv'
 SavePthFilePath = '04/'
 model_path = Basic_path + '100ModelSave/' + SavePthFilePath

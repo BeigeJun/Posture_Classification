@@ -66,7 +66,7 @@ class MLP(nn.Module):
 
 
 model = MLP(12, 64, 128, 256, 256, 128, 64, 0.2, 0.2, 0.2, 0.2, 0.2, 6)
-model.load_state_dict(torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/100ModelSave/01/Bottom_Loss_Validation_MLP.pth'))
+model.load_state_dict(torch.load('//100ModelSave/01/Bottom_Loss_Validation_MLP.pth'))
 first_mlp_model = model.to(device).eval()
 root = tk.Tk()
 root.withdraw()

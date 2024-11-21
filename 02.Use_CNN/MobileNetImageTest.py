@@ -223,7 +223,7 @@ def main():
     model = mobilenetv3().to(device)
     model.load_state_dict(
         torch.load(
-            'C:/Users/wns20/PycharmProjects/SMART_CCTV/MobileNet_Save/BackUp/Large/Bottom_Loss_Validation_MLP.pth',
+            '//MobileNet_Save/BackUp/Large/Bottom_Loss_Validation_MLP.pth',
             map_location=device))
     model.eval()
 

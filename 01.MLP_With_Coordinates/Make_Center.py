@@ -5,8 +5,8 @@ import matplotlib.patches as patches
 from matplotlib.path import Path
 import os
 output_folder = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/output_images'
-csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/pos_data.csv'
-remake_csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/captured_images/pos_data_remake.csv'
+csv_file = '//captured_images/pos_data.csv'
+remake_csv_file = '//captured_images/pos_data_remake.csv'
 
 codes = [
     Path.MOVETO,

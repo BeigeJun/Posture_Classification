@@ -15,7 +15,7 @@ import os
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
-Basic_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/'
+Basic_path = '//'
 csv_file_path = Basic_path + '05.MLP_With_Angle/Data/Angle_data.csv'
 Exel_file_path = Basic_path + '06.Find_The_Best/Parameter.xlsx'
 D_Name = '/No_DropOut'

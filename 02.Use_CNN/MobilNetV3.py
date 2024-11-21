@@ -190,7 +190,7 @@ def main() :
     Bottom_Loss_Train_Epoch = 0
     Bottom_Loss_Validation_Epoch = 0
 
-    save_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/MobileNet_Save/Large/'
+    save_path = '//MobileNet_Save/Large/'
     os.makedirs(save_path, exist_ok=True)
 
     for epoch in tqdm(range(num_epochs), desc="Epoch Progress"):
