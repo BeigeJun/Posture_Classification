@@ -201,3 +201,5 @@ dummy_input = torch.randn(1, 3, 300, 500)
 flops = FlopCountAnalysis(cnn, dummy_input)
 print(f"Total FLOPs: {flops.total()}")
 
+
+
