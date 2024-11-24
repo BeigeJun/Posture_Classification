@@ -223,11 +223,11 @@ def main():
     model = mobilenetv3().to(device)
     model.load_state_dict(
         torch.load(
-            '//MobileNet_Save/BackUp/Large/Bottom_Loss_Validation_MLP.pth',
+            'C:/Users/wns20/PycharmProjects/SMART_CCTV/MobileNet_Save/BackUp/Large/Bottom_Loss_Validation_MLP.pth',
             map_location=device))
     model.eval()
 
-    image_path = '/02.Use_CNN/Frames/Stand/frame_1.jpg'
+    image_path = 'C:/Users/wns20/Desktop/a/14.jpg'
     image_tensor = preprocess_image(image_path)
     keypoints = extract_skeleton(image_tensor.squeeze(0))
     create_skeleton_image(keypoints)
