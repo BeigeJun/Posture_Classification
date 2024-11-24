@@ -5,7 +5,7 @@ import matplotlib.patches as patches
 from matplotlib.path import Path
 import os
 
-csv_file = '/02.Use_CNN/Frames/keypoints_labels.csv'
+csv_file = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/02.Use_CNN/Frames/keypoints_labels.csv'
 remake_csv_file = '/02.Use_CNN/Frames/keypoints_labels_remake.csv'
 
 codes = [
@@ -86,7 +86,7 @@ for i in range(11, 17):
     fieldnames.append(f'keypoint_{i}_y')
 fieldnames.append('label')
 
-output_folder = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/02.Use_CNN/Train'
+output_folder = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/224X224/Test'
 labeled_0 = os.path.join(output_folder, '0')  # Standing
 labeled_1 = os.path.join(output_folder, '1')  # Fallen
 labeled_2 = os.path.join(output_folder, '2')  # Falling
@@ -104,7 +104,7 @@ for i in range(len(points)):
     changed_pos = remake_pos(points, center)
     original_keypoints = np.array(points)
     changed_keypoints = np.array(changed_pos)
-    plt.figure(figsize=(3, 5))
+    plt.figure(figsize=(2.24, 2.24), dpi=100)
 
     plt.scatter(changed_keypoints[i, 5:17, 0], changed_keypoints[i, 5:17, 1], color='red', s=300)
     head_x = (changed_keypoints[i, 3, 0] + changed_keypoints[i, 4, 0]) / 2
@@ -147,7 +147,6 @@ for i in range(len(points)):
     plt.tight_layout()
 
     # 라벨 디렉토리 설정
-    output_folder = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/02.Use_CNN/Train'
     labeled_0 = os.path.join(output_folder, '0')  # Standing
     labeled_1 = os.path.join(output_folder, '1')  # Fallen
     labeled_2 = os.path.join(output_folder, '2')  # Falling
@@ -182,20 +181,20 @@ for i in range(len(points)):
         cnt_label_5 += 1
 
     plt.close()
-
-# CSV 파일 저장
-with open(remake_csv_file, mode='w', newline='') as file:
-    writer = csv.DictWriter(file, fieldnames=fieldnames)
-    writer.writeheader()
-
-    for cnt in range(lines):
-        row = {}
-        row[f'keypoint_5_x'] = changed_keypoints[cnt][5][0]
-        row[f'keypoint_5_y'] = changed_keypoints[cnt][5][1]
-        row[f'keypoint_6_x'] = changed_keypoints[cnt][6][0]
-        row[f'keypoint_6_y'] = changed_keypoints[cnt][6][1]
-        for i in range(11, 17):
-            row[f'keypoint_{i}_x'] = changed_keypoints[cnt][i][0]
-            row[f'keypoint_{i}_y'] = changed_keypoints[cnt][i][1]
-        row['label'] = labels[cnt]
-        writer.writerow(row)
+#
+# # CSV 파일 저장
+# with open(remake_csv_file, mode='w', newline='') as file:
+#     writer = csv.DictWriter(file, fieldnames=fieldnames)
+#     writer.writeheader()
+#
+#     for cnt in range(lines):
+#         row = {}
+#         row[f'keypoint_5_x'] = changed_keypoints[cnt][5][0]
+#         row[f'keypoint_5_y'] = changed_keypoints[cnt][5][1]
+#         row[f'keypoint_6_x'] = changed_keypoints[cnt][6][0]
+#         row[f'keypoint_6_y'] = changed_keypoints[cnt][6][1]
+#         for i in range(11, 17):
+#             row[f'keypoint_{i}_x'] = changed_keypoints[cnt][i][0]
+#             row[f'keypoint_{i}_y'] = changed_keypoints[cnt][i][1]
+#         row['label'] = labels[cnt]
+#         writer.writerow(row)
