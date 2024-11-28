@@ -1,4 +1,4 @@
-#Posture classification🙎‍♂🙅‍♂🙆‍♂💁‍♂🙋‍♂🙇‍♂🤦‍♂🤷‍♂
+Posture classification🙎‍♂🙅‍♂🙆‍♂💁‍♂🙋‍♂🙇‍♂🤦‍♂🤷‍♂
 ------------
 🏆 안양대학교 캡스톤디자인경진대회 장려상 작품입니다.
 
@@ -8,8 +8,8 @@
 
 ------------
 ## 📂 Contents
-  - 👀[Overview](#Overview)
-  - 📂[Directory_설명](#Directory_설명)
+  - [👀 Overview](#Overview)
+  - [📂 Directory_설명](#Directory_설명)
 ------------
 ## 👀 Overview
  - 프로젝트 기간 : 2024/5/12 ~ 2024/11/21
