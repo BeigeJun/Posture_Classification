@@ -229,7 +229,7 @@ def predict_pose(model, image_tensor):
 def main():
     model = mobilenetv3().to(device)
     model.load_state_dict(
-        torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/MobileNet_Save/BackUp/Large/Bottom_Loss_Validation_MLP.pth',
+        torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/MobileNet_Save/Large/Bottom_Loss_Validation_MLP.pth',
                    map_location=device))
     model.eval()
 
@@ -305,9 +305,9 @@ def main():
             img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
             plt.close(fig)
             #---------------------------
-
-            skeleton_image_tensor = preprocess_image(Image.fromarray(img))
             start_time = time.time() * 1000
+            skeleton_image_tensor = preprocess_image(Image.fromarray(img))
+
             pose_label = predict_pose(model, skeleton_image_tensor)
             end_time = time.time() * 1000
             print(f"prediction time : {end_time - start_time:.3f} ms")

@@ -92,7 +92,7 @@ def main() :
             return out
 
     class mobilenetv3(nn.Module):
-        def __init__(self, ver=0, w=1.0):
+        def __init__(self, ver=1, w=1.0):
             super(mobilenetv3, self).__init__()
             large = [
                 [1, 16, 3, 1, False, False],
@@ -190,7 +190,7 @@ def main() :
     Bottom_Loss_Train_Epoch = 0
     Bottom_Loss_Validation_Epoch = 0
 
-    save_path = '//MobileNet_Save/Large/'
+    save_path = 'C:/Users/wns20/PycharmProjects/SMART_CCTV/MobileNet_Save/Small/'
     os.makedirs(save_path, exist_ok=True)
 
     for epoch in tqdm(range(num_epochs), desc="Epoch Progress"):
