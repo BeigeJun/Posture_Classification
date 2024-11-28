@@ -55,6 +55,7 @@ Posture classification🙎‍♂🙅‍♂🙆‍♂💁‍♂🙋‍♂🙇‍�
 
 </div>
 </details>
+
 ------------
 
 + 몸의 관절 각도를 이용한 이유
