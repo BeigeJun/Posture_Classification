@@ -163,62 +163,6 @@ def preprocess_image(image):
     ])
     return transform(image).unsqueeze(0).to(device)
 
-def make_skeleton(img):
-    input_img = preprocess_image(img)
-    with torch.no_grad():
-        out = Skeleton_Model(input_img)[0]
-        scores = out['scores'].cpu().numpy()
-        high_scores_idx = np.where(scores > 0.95)[0]
-
-    keypoints = out['keypoints'][0].cpu().numpy()
-    boxes = out['boxes'][high_scores_idx[0]].cpu().numpy()
-    fig, ax = plt.subplots(figsize=(3, 5))
-
-    plt.scatter(keypoints[5:17, 0], keypoints[5:17, 1], color='red', s=300)
-    head_x = (keypoints[3, 0] + keypoints[4, 0]) / 2
-    head_y = (keypoints[3, 1] + keypoints[4, 1]) / 2
-    plt.scatter(head_x, head_y, color='red', s=500)
-
-    ax.axis('off')
-    ax.invert_xaxis()
-    ax.invert_yaxis()
-
-    shoulder_verts = keypoints[[5, 6], :2]
-    shoulder_path = Path(shoulder_verts, [Path.MOVETO, Path.LINETO])
-    shoulder_line = patches.PathPatch(shoulder_path, linewidth=10, facecolor='none', edgecolor='red')
-    ax.add_patch(shoulder_line)
-    start_time = time.time() * 1000
-    for j in range(2):
-        body_verts = keypoints[[5 + j, 11 + j], :2]
-        body_path = Path(body_verts, [Path.MOVETO, Path.LINETO])
-        body_line = patches.PathPatch(body_path, linewidth=10, facecolor='none', edgecolor='red')
-        ax.add_patch(body_line)
-
-    pelvis_verts = keypoints[[11, 12], :2]
-    pelvis_path = Path(pelvis_verts, [Path.MOVETO, Path.LINETO])
-    pelvis_line = patches.PathPatch(pelvis_path, linewidth=10, facecolor='none', edgecolor='red')
-    ax.add_patch(pelvis_line)
-
-    codes = [Path.MOVETO, Path.LINETO, Path.LINETO]
-    for j in range(2):
-        verts = keypoints[[5 + j, 7 + j, 9 + j], :2]
-        path = Path(verts, codes)
-        line = patches.PathPatch(path, linewidth=8, facecolor='none', edgecolor='red')
-        ax.add_patch(line)
-
-    for j in range(2):
-        verts = keypoints[[11 + j, 13 + j, 15 + j], :2]
-        path = Path(verts, codes)
-        line = patches.PathPatch(path, linewidth=10, facecolor='none', edgecolor='red')
-        ax.add_patch(line)
-
-    plt.tight_layout()
-
-    fig.canvas.draw()
-    img = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-    img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-    plt.close(fig)
-    return img, start_time, boxes
 
 def predict_pose(model, image_tensor):
     with torch.no_grad():
@@ -249,7 +193,7 @@ def main():
 
 
 
-        #---------------------------
+
         input_img = preprocess_image(frame_rgb)
         with torch.no_grad():
             out = Skeleton_Model(input_img)[0]
@@ -258,75 +202,81 @@ def main():
         if len(high_scores_idx) > 0:
             keypoints = out['keypoints'][0].cpu().numpy()
             boxes = out['boxes'][high_scores_idx[0]].cpu().numpy()
-            fig, ax = plt.subplots(figsize=(3, 5))
+            keypoint_scores = out['keypoints_scores']
+            fig, ax = plt.subplots(figsize=(2.24, 2.24))
 
-            plt.scatter(keypoints[5:17, 0], keypoints[5:17, 1], color='red', s=300)
-            head_x = (keypoints[3, 0] + keypoints[4, 0]) / 2
-            head_y = (keypoints[3, 1] + keypoints[4, 1]) / 2
-            plt.scatter(head_x, head_y, color='red', s=500)
+            check_count = 0
+            for idx, kp_score in enumerate(keypoint_scores):
+                if torch.all(kp_score < 0.9):
+                    check_count += 1
+            if check_count < 2:
+                start_time = time.time() * 1000
+                plt.scatter(keypoints[5:17, 0], keypoints[5:17, 1], color='red', s=300)
+                head_x = (keypoints[3, 0] + keypoints[4, 0]) / 2
+                head_y = (keypoints[3, 1] + keypoints[4, 1]) / 2
+                plt.scatter(head_x, head_y, color='red', s=500)
 
-            ax.axis('off')
-            ax.invert_xaxis()
-            ax.invert_yaxis()
+                ax.axis('off')
+                ax.invert_xaxis()
+                ax.invert_yaxis()
 
-            shoulder_verts = keypoints[[5, 6], :2]
-            shoulder_path = Path(shoulder_verts, [Path.MOVETO, Path.LINETO])
-            shoulder_line = patches.PathPatch(shoulder_path, linewidth=10, facecolor='none', edgecolor='red')
-            ax.add_patch(shoulder_line)
+                shoulder_verts = keypoints[[5, 6], :2]
+                shoulder_path = Path(shoulder_verts, [Path.MOVETO, Path.LINETO])
+                shoulder_line = patches.PathPatch(shoulder_path, linewidth=10, facecolor='none', edgecolor='red')
+                ax.add_patch(shoulder_line)
 
-            for j in range(2):
-                body_verts = keypoints[[5 + j, 11 + j], :2]
-                body_path = Path(body_verts, [Path.MOVETO, Path.LINETO])
-                body_line = patches.PathPatch(body_path, linewidth=10, facecolor='none', edgecolor='red')
-                ax.add_patch(body_line)
+                for j in range(2):
+                    body_verts = keypoints[[5 + j, 11 + j], :2]
+                    body_path = Path(body_verts, [Path.MOVETO, Path.LINETO])
+                    body_line = patches.PathPatch(body_path, linewidth=10, facecolor='none', edgecolor='red')
+                    ax.add_patch(body_line)
 
-            pelvis_verts = keypoints[[11, 12], :2]
-            pelvis_path = Path(pelvis_verts, [Path.MOVETO, Path.LINETO])
-            pelvis_line = patches.PathPatch(pelvis_path, linewidth=10, facecolor='none', edgecolor='red')
-            ax.add_patch(pelvis_line)
+                pelvis_verts = keypoints[[11, 12], :2]
+                pelvis_path = Path(pelvis_verts, [Path.MOVETO, Path.LINETO])
+                pelvis_line = patches.PathPatch(pelvis_path, linewidth=10, facecolor='none', edgecolor='red')
+                ax.add_patch(pelvis_line)
 
-            codes = [Path.MOVETO, Path.LINETO, Path.LINETO]
-            for j in range(2):
-                verts = keypoints[[5 + j, 7 + j, 9 + j], :2]
-                path = Path(verts, codes)
-                line = patches.PathPatch(path, linewidth=8, facecolor='none', edgecolor='red')
-                ax.add_patch(line)
+                codes = [Path.MOVETO, Path.LINETO, Path.LINETO]
+                for j in range(2):
+                    verts = keypoints[[5 + j, 7 + j, 9 + j], :2]
+                    path = Path(verts, codes)
+                    line = patches.PathPatch(path, linewidth=8, facecolor='none', edgecolor='red')
+                    ax.add_patch(line)
 
-            for j in range(2):
-                verts = keypoints[[11 + j, 13 + j, 15 + j], :2]
-                path = Path(verts, codes)
-                line = patches.PathPatch(path, linewidth=10, facecolor='none', edgecolor='red')
-                ax.add_patch(line)
+                for j in range(2):
+                    verts = keypoints[[11 + j, 13 + j, 15 + j], :2]
+                    path = Path(verts, codes)
+                    line = patches.PathPatch(path, linewidth=10, facecolor='none', edgecolor='red')
+                    ax.add_patch(line)
 
-            plt.tight_layout()
+                plt.tight_layout()
 
-            fig.canvas.draw()
-            img = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-            img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-            plt.close(fig)
-            #---------------------------
-            start_time = time.time() * 1000
-            skeleton_image_tensor = preprocess_image(Image.fromarray(img))
+                fig.canvas.draw()
+                img = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+                img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+                plt.close(fig)
 
-            pose_label = predict_pose(model, skeleton_image_tensor)
-            end_time = time.time() * 1000
-            print(f"prediction time : {end_time - start_time:.3f} ms")
 
-            # cv2.putText(frame, f"Pose: {pose_names[pose_label]}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-            if pose_names[pose_label] == pose_names[1]:
-                box_color = (0, 0, 255)
-            else:
-                box_color = (0, 255, 0)
-            x1, y1, x2, y2 = map(int, boxes)
-            cv2.rectangle(frame, (x1, y1), (x2, y2), box_color, 2)
+                skeleton_image_tensor = preprocess_image(Image.fromarray(img))
 
-            (label_width, label_height), baseline = cv2.getTextSize(pose_names[pose_label], cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
-            cv2.rectangle(frame, (x1, y1 - label_height - baseline), (x1 + label_width, y1), box_color, cv2.FILLED)
-            cv2.putText(frame, pose_names[pose_label], (x1, y1 - baseline), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                pose_label = predict_pose(model, skeleton_image_tensor)
+                end_time = time.time() * 1000
+                print(f"prediction time : {end_time - start_time:.3f} ms")
+
+                if pose_names[pose_label] == pose_names[1]:
+                    box_color = (0, 0, 255)
+                else:
+                    box_color = (0, 255, 0)
+                x1, y1, x2, y2 = map(int, boxes)
+                cv2.rectangle(frame, (x1, y1), (x2, y2), box_color, 2)
+
+                (label_width, label_height), baseline = cv2.getTextSize(pose_names[pose_label], cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
+                cv2.rectangle(frame, (x1, y1 - label_height - baseline), (x1 + label_width, y1), box_color, cv2.FILLED)
+                cv2.putText(frame, pose_names[pose_label], (x1, y1 - baseline), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
+            cv2.imshow('Skeleton Image', cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
 
         cv2.imshow('Real-time Pose Estimation', frame)
-        cv2.imshow('Skeleton Image', cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
-
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 

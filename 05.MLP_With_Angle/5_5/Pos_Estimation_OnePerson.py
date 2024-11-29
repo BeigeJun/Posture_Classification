@@ -66,7 +66,7 @@ class MLP(nn.Module):
 
 
 model = MLP(12, 64, 128, 256, 256, 128, 64, 0.2, 0.2, 0.2, 0.2, 0.2, 6)
-model.load_state_dict(torch.load('//100ModelSave/01/Bottom_Loss_Validation_MLP.pth'))
+model.load_state_dict(torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/100ModelSave/01/Bottom_Loss_Validation_MLP.pth'))
 first_mlp_model = model.to(device).eval()
 root = tk.Tk()
 root.withdraw()
@@ -108,6 +108,7 @@ while cap.isOpened():
                 if kp_score < 0.9:
                     check_count += 1
             if check_count < 2:
+                start_time = time.time() * 1000
                 angles = []
                 angles.append(make_angle(keypoints[5], keypoints[6]))  # 왼쪽 어깨 -> 오른쪽 어깨
                 angles.append(make_angle(keypoints[5], keypoints[7]))  # 왼쪽 어깨 -> 왼쪽 팔꿈치
@@ -124,7 +125,6 @@ while cap.isOpened():
 
                 angles_tensor = torch.tensor(angles, dtype=torch.float32).unsqueeze(0).to(device)
                 with torch.no_grad():
-                    start_time = time.time() * 1000
                     prediction = first_mlp_model(angles_tensor)
                     end_time = time.time() * 1000
                     _, predicted_label = torch.max(prediction, 1)
