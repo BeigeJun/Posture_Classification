@@ -108,7 +108,7 @@ while cap.isOpened():
                 if kp_score < 0.9:
                     check_count += 1
             if check_count < 2:
-                start_time = time.time() * 1000
+
                 angles = []
                 angles.append(make_angle(keypoints[5], keypoints[6]))  # 왼쪽 어깨 -> 오른쪽 어깨
                 angles.append(make_angle(keypoints[5], keypoints[7]))  # 왼쪽 어깨 -> 왼쪽 팔꿈치
@@ -125,11 +125,13 @@ while cap.isOpened():
 
                 angles_tensor = torch.tensor(angles, dtype=torch.float32).unsqueeze(0).to(device)
                 with torch.no_grad():
+                    start_time = time.time() * 1000
                     prediction = first_mlp_model(angles_tensor)
                     end_time = time.time() * 1000
+                    print(f"prediction time : {end_time - start_time:.100f} ms")
+
                     _, predicted_label = torch.max(prediction, 1)
                 First_Label = First_MLP_label_map[predicted_label.item()]
-                print(f"prediction time : {end_time - start_time:.3f} ms")
                 if len(Label_List) >= 10:
                     Label_List.pop(0)
                 Label_List.append(predicted_label.item())

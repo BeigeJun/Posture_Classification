@@ -77,7 +77,7 @@ class inverted_residual_block(nn.Module):
 
 
 class mobilenetv3(nn.Module):
-    def __init__(self, ver=0, w=1.0):
+    def __init__(self, ver=1, w=1.0):
         super(mobilenetv3, self).__init__()
         large = [
             [1, 16, 3, 1, False, False],
@@ -173,7 +173,7 @@ def predict_pose(model, image_tensor):
 def main():
     model = mobilenetv3().to(device)
     model.load_state_dict(
-        torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/MobileNet_Save/Large/Bottom_Loss_Validation_MLP.pth',
+        torch.load('C:/Users/wns20/PycharmProjects/SMART_CCTV/MobileNet_Save/Small/Bottom_Loss_Validation_MLP.pth',
                    map_location=device))
     model.eval()
 
@@ -190,23 +190,22 @@ def main():
             break
 
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-
-
-
         input_img = preprocess_image(frame_rgb)
+
         with torch.no_grad():
             out = Skeleton_Model(input_img)[0]
             scores = out['scores'].cpu().numpy()
             high_scores_idx = np.where(scores > 0.95)[0]
+
         if len(high_scores_idx) > 0:
+
             keypoints = out['keypoints'][0].cpu().numpy()
             boxes = out['boxes'][high_scores_idx[0]].cpu().numpy()
             keypoint_scores = out['keypoints_scores']
             fig, ax = plt.subplots(figsize=(2.24, 2.24))
 
             check_count = 0
-            for idx, kp_score in enumerate(keypoint_scores):
+            for kp_score in keypoint_scores[0]:
                 if torch.all(kp_score < 0.9):
                     check_count += 1
             if check_count < 2:
@@ -274,7 +273,7 @@ def main():
                 cv2.rectangle(frame, (x1, y1 - label_height - baseline), (x1 + label_width, y1), box_color, cv2.FILLED)
                 cv2.putText(frame, pose_names[pose_label], (x1, y1 - baseline), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
-            cv2.imshow('Skeleton Image', cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+            # cv2.imshow('Skeleton Image', cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
 
         cv2.imshow('Real-time Pose Estimation', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
