@@ -111,22 +111,18 @@ Posture classification🙎‍♂🙅‍♂🙆‍♂💁‍♂🙋‍♂🙇‍�
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 서있음 | 서있음 | 서있음 | X | X | X | X | X | X | 넘어짐 |
 
-#시연
-
-+ 평상시
-  ![Nomal](https://github.com/user-attachments/assets/3fff9815-2ca4-4871-8f0a-b77a07264409)
-
-+ 낙상 상황 1
-![FallDown1](https://github.com/user-attachments/assets/462ec677-2d69-4ca7-a7b8-388a9cff02fa)
-
-+ 낙상 상황 2
-![FallDown2](https://github.com/user-attachments/assets/899a7788-1098-4b92-b86e-852a9c6c0161)
-
-+ 낙상 상황 3
-![FallDown3](https://github.com/user-attachments/assets/3f16039c-d52b-4124-8c33-4e254dccf751)
-
-+ 낙상 상황 4
-![FallDown4](https://github.com/user-attachments/assets/400ad929-b9f6-4977-9b0d-aa3e680024e7)
+| 시연 |
+| --- |
+| 평상시 |
+| ![Nomal](https://github.com/user-attachments/assets/3fff9815-2ca4-4871-8f0a-b77a07264409) |
+| 낙상 상황 1 |
+| ![FallDown1](https://github.com/user-attachments/assets/462ec677-2d69-4ca7-a7b8-388a9cff02fa) |
+| 낙상 상황 2 |
+| ![FallDown2](https://github.com/user-attachments/assets/899a7788-1098-4b92-b86e-852a9c6c0161) |
+| 낙상 상황 3 |
+| ![FallDown3](https://github.com/user-attachments/assets/3f16039c-d52b-4124-8c33-4e254dccf751) |
+| 낙상 상황 4 |
+| ![FallDown4](https://github.com/user-attachments/assets/400ad929-b9f6-4977-9b0d-aa3e680024e7) |
 
 
 ------------
