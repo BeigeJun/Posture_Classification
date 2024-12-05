@@ -115,7 +115,7 @@ Posture classification🙎‍♂🙅‍♂🙆‍♂💁‍♂🙋‍♂🙇‍�
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 서있음 | 서있음 | 서있음 | X | X | X | X | X | X | 넘어짐 |
 
-| 시연 |
+| 시연 | 시연 |
 | --- |
 | 평상시 | 낙상 상황 1 |
 | ![Nomal](https://github.com/user-attachments/assets/3fff9815-2ca4-4871-8f0a-b77a07264409) | ![FallDown1](https://github.com/user-attachments/assets/462ec677-2d69-4ca7-a7b8-388a9cff02fa) |
